@@ -10,5 +10,6 @@
         "**/.ruby-lsp": true,
         "**/venv": true,
         "**/__pycache__": true
-    }
+    },
+    "editor.glyphMargin": true
 }

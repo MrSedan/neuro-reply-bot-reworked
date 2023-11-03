@@ -47,7 +47,14 @@ class Post(Base):
     from_user_id: Mapped[int] = mapped_column(ForeignKey('admin.user_id'))
     user: Mapped['Admin'] = relationship(back_populates='posts')
     text: Mapped[str]
-    images: Mapped[str]
+    images: Mapped[List['Image']] = relationship(back_populates='post', cascade='all, delete')
+
+class Image(Base):
+    __tablename__ = 'photo'
+    message_id: Mapped[int] = mapped_column(primary_key=True)
+    media_group_id: Mapped[int]
+    post: Mapped['Post'] = relationship(back_populates='images')
+    post_id: Mapped[int] = mapped_column(ForeignKey('post.uuid'))
     
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
