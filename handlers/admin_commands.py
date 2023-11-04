@@ -39,7 +39,14 @@ class Admin_commands:
         
         @self.router.message(Command('info'))
         async def info_command(message: types.Message):
-            await message.answer('Тест')
+            with Session(engine) as session:
+                posts = session.query(Post).filter(not Post.posted).all()
+                admins = session.query(Admin).all()
+                post_c = {}
+                for admin in admins: post_c[str(admin.user_id)] = 0
+                for post in posts:
+                    post_c[str(post.from_user_id)] +=1
+            await message.answer(str(post_c))
     
         @self.router.message(Command('post'))
         async def post(message: types.Message):
