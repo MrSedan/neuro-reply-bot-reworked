@@ -37,4 +37,4 @@ class NewSoloPostFilter(Filter):
     
 class ChangePosts(Filter):
     async def __call__(self, message: types.Message) -> bool:
-        return message.text.startswith("/change")  and message.chat.type == 'private'
+        return message.text and message.text.startswith("/change")  and message.chat.type == 'private'
