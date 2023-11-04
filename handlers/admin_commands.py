@@ -3,11 +3,13 @@ from uuid import uuid4
 
 from aiogram import Bot, F, Router, types
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.utils.media_group import MediaGroupBuilder
 from sqlalchemy.orm import Session
 
 from db.data import Admin, Image, Post, User, engine
-from handlers.filters.new_post import NewPostFilter, NewSoloPostFilter
+from handlers.filters.new_post import (ChangePosts, NewPostFilter,
+                                       NewSoloPostFilter)
 from handlers.middlewares.user import AdminMiddleware
 
 
@@ -47,6 +49,15 @@ class Admin_commands:
                 for post in posts:
                     post_c[str(post.from_user_id)] +=1
             await message.answer(str(post_c))
+        
+        @self.router.message(ChangePosts())
+        async def change_post(message: types.Message, state: FSMContext):
+            with Session(engine) as session:
+                posts = session.query(Post).filter(Post.posted == False).order_by(Post.timestamp.asc()).all()
+                #TODO: Изменение поста
+                # await state.update_data(posts=posts, )
+            
+        
     
         @self.router.message(Command('post'))
         async def post(message: types.Message):

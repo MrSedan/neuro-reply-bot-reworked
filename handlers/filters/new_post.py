@@ -34,3 +34,7 @@ class NewPostFilter(Filter):
 class NewSoloPostFilter(Filter):
     async def __call__(self, message: types.Message) -> bool:
         return message.media_group_id is None and message.content_type == 'photo' and message.caption.startswith('/newpost ')
+    
+class ChangePosts(Filter):
+    async def __call__(self, message: types.Message) -> bool:
+        return message.text.startswith("/change")  and message.chat.type == 'private'
