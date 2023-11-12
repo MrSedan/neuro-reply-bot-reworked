@@ -12,13 +12,15 @@ from db.data import Admin, Image, Post, User, engine
 from handlers.filters.new_post import (ChangePosts, NewPostFilter,
                                        NewSoloPostFilter)
 from handlers.middlewares.user import AdminMiddleware
+from handlers.states.change_post import ChangePost
 
 
-def get_post_info(post: Post) -> str:
+def get_post_info(post: Post, post_id: int) -> str:
     text = post.text
     time = post.timestamp
     from_user = post.from_user_id
-    s = f"""Текст: {text}\nВремя отправки: {time}\nОт: [id{from_user}](tg://user?id={from_user})""".replace('#', '\#').replace("_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:')
+    s = f"""Индекс: {post_id}\nТекст: {text}\nВремя отправки: {time}\nОт: [id{from_user}](tg://user?id={from_user})""".replace('#', '\#').replace(
+        "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:')
     return s
 
 
@@ -53,7 +55,7 @@ class Admin_commands:
         @self.router.message(Command('info'))
         async def info_command(message: types.Message):
             with Session(engine) as session:
-                posts = session.query(Post).filter(not Post.posted).all()
+                posts = session.query(Post).filter(Post.posted == False).all()
                 admins = session.query(Admin).all()
                 post_c = {}
                 for admin in admins:
@@ -76,12 +78,16 @@ class Admin_commands:
                     kb = [
                         select_btns,
                         [types.InlineKeyboardButton(
+                            callback_data='change_post_text', text='Текст')],
+                        [types.InlineKeyboardButton(
                             text='Отмена', callback_data='cancel')]
                     ]
                     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-                    images = MediaGroupBuilder(caption=get_post_info(posts[0]))
+                    images = MediaGroupBuilder(
+                        caption=get_post_info(posts[0], 1))
                     for image in posts[0].images:
-                        images.add_photo(image.file_id, parse_mode='markdownv2')
+                        images.add_photo(
+                            image.file_id, parse_mode='markdownv2')
                     mes = await message.answer_media_group(media=images.build())
                     await state.update_data(edit_msg=mes[0].message_id)
                     await message.answer('Действия', reply_markup=keyboard)
@@ -107,13 +113,49 @@ class Admin_commands:
             kb = [
                 select_btns,
                 [types.InlineKeyboardButton(
+                    callback_data='change_post_text', text='Текст')],
+                [types.InlineKeyboardButton(
                     text='Отмена', callback_data='cancel')]
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await state.update_data(id=post_id)
-            await bot.edit_message_caption(caption=get_post_info(posts[post_id]), chat_id=callback.message.chat.id, message_id=data['edit_msg'], parse_mode='markdownv2')
+            await bot.edit_message_caption(caption=get_post_info(posts[post_id], post_id+1), chat_id=callback.message.chat.id, message_id=data['edit_msg'], parse_mode='markdownv2')
             await callback.message.edit_reply_markup(reply_markup=keyboard)
             await callback.answer()
+
+        @self.router.callback_query(F.data == 'change_post_text')
+        async def change_post_text_call(callback: types.CallbackQuery, state: FSMContext):
+            data = await state.get_data()
+            if 'posts' not in data:
+                await state.clear()
+                await callback.answer()
+                await callback.message.delete()
+                return
+            await callback.message.delete()
+            await callback.answer()
+            kb = [
+                [types.InlineKeyboardButton(
+                    text='Отмена', callback_data='cancel')]
+            ]
+            keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+            await state.set_state(ChangePost.Text)
+            await callback.message.answer('Введите новый текст поста:', reply_markup=keyboard)
+
+        @self.router.message(ChangePost.Text)
+        async def change_post_text(message: types.Message, state: FSMContext):
+            data = await state.get_data()
+            if 'posts' not in data:
+                await state.clear()
+                return
+            posts = data['posts']
+            post_id = data['id']
+            post: Post = posts[post_id]
+            with Session(engine) as session:
+                p = session.get(Post, post.uuid)
+                p.text = message.text
+                session.commit()
+            await state.clear()
+            await message.answer(f'Текст поста изменен на: {message.text}')
 
         @self.router.callback_query(F.data == 'prev_post')
         async def prev_post_changing(callback: types.CallbackQuery, state: FSMContext):
@@ -133,11 +175,13 @@ class Admin_commands:
             kb = [
                 select_btns,
                 [types.InlineKeyboardButton(
+                    callback_data='change_post_text', text='Текст')],
+                [types.InlineKeyboardButton(
                     text='Отмена', callback_data='cancel')]
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await state.update_data(id=post_id)
-            await bot.edit_message_caption(caption=get_post_info(posts[post_id]), chat_id=callback.message.chat.id, message_id=data['edit_msg'], parse_mode='markdownv2')
+            await bot.edit_message_caption(caption=get_post_info(posts[post_id], post_id), chat_id=callback.message.chat.id, message_id=data['edit_msg'], parse_mode='markdownv2')
             await callback.message.edit_reply_markup(reply_markup=keyboard)
             await callback.answer()
 
