@@ -18,7 +18,8 @@ def get_post_info(post: Post) -> str:
     text = post.text
     time = post.timestamp
     from_user = post.from_user_id
-    s = f"""Текст: {text}\nВремя отправки: {time}\nОт: [id{from_user}](tg://user?id={from_user})""".replace('#', '\#').replace("_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:')
+    s = f"""Текст: {text}\nВремя отправки: {time}\nОт: [id{from_user}](tg://user?id={from_user})""".replace('#', '\#').replace(
+        "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:')
     return s
 
 
@@ -44,7 +45,7 @@ class Admin_commands:
                     Post.media_group_id == message.media_group_id).first()
                 if post:
                     photo = Image(message_id=message.message_id,
-                                  post=post, file_id=message.photo[-1].file_id)
+                                  post=post, file_id=message.photo[-1].file_id, has_spoiler=message.has_media_spoiler)
                     session.add(photo)
                     session.commit()
                 else:
@@ -81,7 +82,8 @@ class Admin_commands:
                     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
                     images = MediaGroupBuilder(caption=get_post_info(posts[0]))
                     for image in posts[0].images:
-                        images.add_photo(image.file_id, parse_mode='markdownv2')
+                        images.add_photo(
+                            image.file_id, parse_mode='markdownv2')
                     mes = await message.answer_media_group(media=images.build())
                     await state.update_data(edit_msg=mes[0].message_id)
                     await message.answer('Действия', reply_markup=keyboard)
@@ -158,7 +160,8 @@ class Admin_commands:
                 if post:
                     images = MediaGroupBuilder(caption=post.text)
                     for image in post.images:
-                        images.add_photo(image.file_id)
+                        images.add_photo(
+                            image.file_id, has_spoiler=image.has_spoiler)
                     await message.answer_media_group(images.build())
                     post.posted = True
                     session.commit()
@@ -173,7 +176,7 @@ class Admin_commands:
                 post_user = session.get(Admin, message.from_user.id)
                 post.user = post_user
                 photo = Image(message_id=message.message_id,
-                              post=post, file_id=message.photo[-1].file_id)
+                              post=post, file_id=message.photo[-1].file_id, has_spoiler=message.has_media_spoiler)
                 session.add(photo)
                 session.add(post)
                 session.commit()
