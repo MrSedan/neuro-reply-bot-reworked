@@ -46,7 +46,7 @@ class Admin_commands:
                     Post.media_group_id == message.media_group_id).first()
                 if post:
                     photo = Image(message_id=message.message_id,
-                                  post=post, file_id=message.photo[-1].file_id, has_spoiler=message.has_media_spoiler)
+                                  post=post, file_id=message.photo[-1].file_id, has_spoiler=bool(message.has_media_spoiler))
                     session.add(photo)
                     session.commit()
                 else:
@@ -201,7 +201,7 @@ class Admin_commands:
                     Post.posted == False).order_by(Post.timestamp.asc()).first()
                 if post:
                     images = MediaGroupBuilder(caption=post.text)
-                    for image in post.images:
+                    for image in post.images[::-1]:
                         images.add_photo(
                             image.file_id, has_spoiler=image.has_spoiler)
                     await message.answer_media_group(images.build())
@@ -218,7 +218,7 @@ class Admin_commands:
                 post_user = session.get(Admin, message.from_user.id)
                 post.user = post_user
                 photo = Image(message_id=message.message_id,
-                              post=post, file_id=message.photo[-1].file_id, has_spoiler=message.has_media_spoiler)
+                              post=post, file_id=message.photo[-1].file_id, has_spoiler=bool(message.has_media_spoiler))
                 session.add(photo)
                 session.add(post)
                 session.commit()
