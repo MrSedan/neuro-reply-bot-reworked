@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from db.data import Admin, Image, Post, User, engine
 from handlers.filters.new_post import (ChangePosts, NewPostFilter,
                                        NewSoloPostFilter)
+from handlers.filters.reply_to_user import ReplyToUser
 from handlers.middlewares.user import AdminMiddleware
 from handlers.states.change_post import ChangePost
 
@@ -223,6 +224,17 @@ class Admin_commands:
                 session.add(post)
                 session.commit()
                 await message.answer('Пост успешно добавлен!')
+
+        @self.router.message(ReplyToUser())
+        async def reply_user(message: types.Message):
+            if message.reply_to_message.forward_from is None:
+                await message.reply('Пользователь стесняшка и не разрешает отвечать на его сообщения...')
+            else:
+                try:
+                    await bot.send_message(message.reply_to_message.forward_from.id, f'Вам ответил админ:\n{message.text}')
+                    await message.reply('Ваше сообщение было отправлено!')
+                except Exception as e:
+                    print(e)
 
     def __call__(self, *args: Any, **kwds: Any) -> Router:
         return self.router
