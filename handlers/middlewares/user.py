@@ -2,9 +2,8 @@ from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from sqlalchemy.orm import Session
 
-from db.data import Admin, User, engine
+from neuroapi import neuroapi
 
 
 class AdminMiddleware(BaseMiddleware):
@@ -12,12 +11,8 @@ class AdminMiddleware(BaseMiddleware):
         pass
     
     async def __call__(self, handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]], event: Message, data: Dict[str, Any]) -> Any:
-        with Session(engine) as session:
-            if not session.get(User, event.from_user.id):
-                user = User(id=event.from_user.id, user_name=event.from_user.username)
-                session.add(user)
-                session.commit()
-            isAdmin = session.get(Admin, event.from_user.id)
+        await neuroapi.user.get(str(event.from_user.id), event.from_user.username)
+        isAdmin = await neuroapi.admin.is_admin(str(event.from_user.id))
         if not isAdmin:
             await event.answer('Команда только для админов!')
             return None
