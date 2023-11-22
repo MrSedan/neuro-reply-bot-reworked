@@ -14,6 +14,7 @@ from handlers.filters.new_post import (ChangePosts, NewPostFilter,
 from handlers.filters.reply_to_user import ReplyToUser
 from handlers.middlewares.user import AdminMiddleware
 from handlers.states.change_post import ChangePost
+from neuroapi import neuroapi
 
 
 def get_post_info(post: Post, post_id: int) -> str:
@@ -34,37 +35,24 @@ class Admin_commands:
         self.router = Router()
         self.router.message.middleware(AdminMiddleware())
 
-        @self.router.message(Command('test'))
-        async def test_command(message: types.Message):
-            with Session(engine) as session:
-                user = session.get(User, message.from_user.id)
-                await message.answer(str(user))
-
         @self.router.message(NewPostFilter())
         async def new_post(message: types.Message):
-            with Session(engine) as session:
-                post = session.query(Post).filter(
-                    Post.media_group_id == message.media_group_id).first()
-                if post:
-                    photo = Image(message_id=message.message_id,
-                                  post=post, file_id=message.photo[-1].file_id, has_spoiler=bool(message.has_media_spoiler))
-                    session.add(photo)
-                    session.commit()
-                else:
-                    print('No posts anymore ;-(')
+            post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
+            await neuroapi.image.add(post['uuid'], message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
 
         @self.router.message(Command('info'))
         async def info_command(message: types.Message):
-            with Session(engine) as session:
-                posts = session.query(Post).filter(Post.posted == False).all()
-                admins = session.query(Admin).all()
-                post_c = {}
-                for admin in admins:
-                    post_c[str(admin.user_id)] = 0
-                for post in posts:
-                    post_c[str(post.from_user_id)] += 1
+            posts = await neuroapi.post.get_will_post()
+            post_c = {}
+            for post in posts:
+                if post['from_user_id'] not in post_c:
+                    post_c[post['from_user_id']] = 1
+                else:
+                    post_c[post['from_user_id']] += 1
             await message.answer(str(post_c))
 
+        #TODO: Post changing with backend
+        ######################################3
         @self.router.message(ChangePosts())
         async def change_post(message: types.Message, state: FSMContext):
             with Session(engine) as session:
@@ -194,37 +182,27 @@ class Admin_commands:
             data = await state.get_data()
             if 'edit_msg' in data:
                 await bot.delete_message(message_id=data['edit_msg'], chat_id=callback.message.chat.id)
+                
+        ##########################################################
 
         @self.router.message(Command('post'))
         async def post(message: types.Message):
-            with Session(engine) as session:
-                post = session.query(Post).filter(
-                    Post.posted == False).order_by(Post.timestamp.asc()).first()
-                if post:
-                    images = MediaGroupBuilder(caption=post.text)
-                    for image in post.images[::-1]:
-                        images.add_photo(
-                            image.file_id, has_spoiler=image.has_spoiler)
-                    await message.answer_media_group(images.build())
-                    post.posted = True
-                    session.commit()
-                else:
-                    await message.answer('Постов немаэ')
+            posts = await neuroapi.post.get_will_post()
+            if (posts):
+                post = await neuroapi.post.get(posts[0]['uuid'])
+                images = MediaGroupBuilder(caption=post['text'])
+                for image in sorted(post['images'], key=lambda x: x['message_id']):
+                    images.add_photo(image['file_id'], has_spoiler=image['has_spoiler'])
+                await message.answer_media_group(images.build())
+            else:
+                await message.answer('Нет постов')
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
-            with Session(engine) as session:
-                post = Post(uuid=uuid4(), text=message.caption.replace(
-                    '/newpost ', ''), media_group_id='')
-                post_user = session.get(Admin, message.from_user.id)
-                post.user = post_user
-                photo = Image(message_id=message.message_id,
-                              post=post, file_id=message.photo[-1].file_id, has_spoiler=bool(message.has_media_spoiler))
-                session.add(photo)
-                session.add(post)
-                session.commit()
-                await message.answer('Пост успешно добавлен!')
-
+            post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id)
+            await neuroapi.image.add(post['uuid'], message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
+            await message.answer('Пост успешно добавлен!')
+            
         @self.router.message(ReplyToUser())
         async def reply_user(message: types.Message):
             if message.reply_to_message.forward_from is None:
