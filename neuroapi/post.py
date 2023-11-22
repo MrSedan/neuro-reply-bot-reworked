@@ -48,3 +48,10 @@ class Post(ApiMethod):
         if 'statusCode' in data:
             raise Exception(data['message'])
         return data
+
+    async def edit_text(self, post_id: str, text: str):
+        response = requests.post(self.api_url+f"/post/edit/{post_id}", data={"text": text})
+        data = response.json()
+        if 'statusCode' in data:
+            raise Exception(data['message'])
+        return data
