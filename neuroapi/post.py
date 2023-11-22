@@ -1,20 +1,21 @@
-from aiohttp import ClientSession, ClientResponse
-from .enums import EGetAll
+import requests
+from aiohttp import ClientSession
+
 from .api_method import ApiMethod
+from .enums import EGetAll
 
 
 class Post(ApiMethod):
 
-    async def new(self, text: str, from_user_id: str, media_group_id: str):
+    async def new(self, text: str, from_user_id: str, media_group_id: str = "None"):
         payload = {'text': text, 'from_user_id': from_user_id}
         if media_group_id != 'None':
             payload['media_group_id'] = media_group_id
-        async with ClientSession() as session:
-            response: ClientResponse = await session.post(self.api_url+'/post/new', data=payload)
-        data = await response.json()
+        response = requests.post(self.api_url+'/post/new', data=payload)
+        data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return data['status']
+        return data
 
     async def __get_all(self, status: EGetAll):
         async with ClientSession() as session:
@@ -42,9 +43,8 @@ class Post(ApiMethod):
         return data
 
     async def get_by_media_group_id(self, media_group_id: str):
-        async with ClientSession() as session:
-            response = await session.get(self.api_url+f'/post/get-by-media-group-id/{media_group_id}')
-        data = await response.json()
+        response = requests.get(self.api_url+f'/post/get-by-media-group-id/{media_group_id}')
+        data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return await response.json()
+        return data
