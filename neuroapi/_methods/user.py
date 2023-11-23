@@ -1,4 +1,5 @@
 from aiohttp import ClientSession
+
 from .api_method import ApiMethod
 
 

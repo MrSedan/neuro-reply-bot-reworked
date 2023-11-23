@@ -7,12 +7,7 @@ from os.path import dirname, join
 import aioschedule as schedule
 import dotenv
 from aiogram import Bot, Dispatcher, F, types
-from aiogram.filters import Command, CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-from handlers.admin_commands import Admin_commands
+from aiogram.filters import CommandStart
 
 dotenv.load_dotenv()
 
@@ -35,7 +30,6 @@ for filename in os.listdir(handlers_dir):
 
 
 async def main() -> None:
-    # dp.include_router(Admin_commands(bot)())
     await dp.start_polling(bot, skip_updates=True)
     
 if __name__ == '__main__':
