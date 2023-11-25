@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 from aiogram import Bot, F, Router, types
 from aiogram.filters import Command
@@ -11,14 +11,15 @@ from handlers.filters.reply_to_user import ReplyToUser
 from handlers.middlewares.user import AdminMiddleware
 from handlers.states.change_post import ChangePost
 from neuroapi import neuroapi
+import neuroapi.types as nat
 
 
-def get_post_info(post: dict, post_id: int) -> str:
-    text = post["text"]
-    time = post["timestamp"]
-    from_user = post["from_user_id"]
+def get_post_info(post: nat.Post, post_id: int) -> str:
+    text = post.text
+    time = post.timestamp
+    from_user = post.from_user_id
     s = f"""Индекс: {post_id}\nТекст: {text}\nВремя отправки: {time}\nОт: [id{from_user}](tg://user?id={from_user})""".replace('#', '\#').replace(
-        "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:')
+        "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:').replace('+', '\+')
     return s
 
 
@@ -33,18 +34,18 @@ class Admin_commands:
 
         @self.router.message(NewPostFilter())
         async def new_post(message: types.Message):
-            post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
-            await neuroapi.image.add(post['uuid'], message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
+            post: nat.Post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
+            await neuroapi.image.add(str(post.uuid), message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
 
         @self.router.message(Command('info'))
         async def info_command(message: types.Message):
-            posts = await neuroapi.post.get_will_post()
+            posts: List[nat.Post] = await neuroapi.post.get_will_post()
             post_c = {}
             for post in posts:
-                if post['from_user_id'] not in post_c:
-                    post_c[post['from_user_id']] = 1
+                if post.from_user_id not in post_c:
+                    post_c[post.from_user_id] = 1
                 else:
-                    post_c[post['from_user_id']] += 1
+                    post_c[post.from_user_id] += 1
             await message.answer(str(post_c))
 
         @self.router.message(ChangePosts())
@@ -64,12 +65,13 @@ class Admin_commands:
                         text='Отмена', callback_data='cancel')]
                 ]
                 keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-                post = await neuroapi.post.get(posts[0]['uuid'])
+                post = await neuroapi.post.get(str(posts[0].uuid))
                 images = MediaGroupBuilder(
                     caption=get_post_info(post, 1))
-                for image in sorted(post['images'], key=lambda x: x['message_id']):
-                    images.add_photo(image['file_id'],
-                                     has_spoiler=image['has_spoiler'], parse_mode='markdownv2')
+                image: nat.Image
+                for image in sorted(post.images, key=lambda x: x.message_id):
+                    images.add_photo(image.file_id,
+                                     has_spoiler=image.has_spoiler, parse_mode='markdownv2')
                 mes = await message.answer_media_group(images.build())
                 await state.update_data(edit_msg=mes[0].message_id)
                 await message.answer('Действия', reply_markup=keyboard)
@@ -84,7 +86,7 @@ class Admin_commands:
                 await callback.answer()
                 await callback.message.delete()
                 return
-            posts = data['posts']
+            posts: List[nat.Post] = data['posts']
             post_id = data['id']+1
             select_btns = [types.InlineKeyboardButton(
                 text='<-', callback_data='prev_post')]
@@ -100,7 +102,7 @@ class Admin_commands:
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await state.update_data(id=post_id)
-            post = await neuroapi.post.get(posts[post_id]['uuid'])
+            post = await neuroapi.post.get(str(posts[post_id].uuid))
             await bot.edit_message_caption(caption=get_post_info(post, post_id+1), chat_id=callback.message.chat.id, message_id=data['edit_msg'], parse_mode='markdownv2')
             await callback.message.edit_reply_markup(reply_markup=keyboard)
             await callback.answer()
@@ -129,9 +131,9 @@ class Admin_commands:
             if 'posts' not in data:
                 await state.clear()
                 return
-            posts = data['posts']
+            posts: List[nat.Post] = data['posts']
             post_id = data['id']
-            post_uuid = posts[post_id]['uuid']
+            post_uuid = str(posts[post_id].uuid)
             try:
                 await neuroapi.post.edit_text(post_uuid, message.text)
                 await message.answer(f'Текст поста изменен на: {message.text}')
@@ -147,7 +149,7 @@ class Admin_commands:
                 await callback.answer()
                 await callback.message.delete()
                 return
-            posts = data['posts']
+            posts: List[nat.Post] = data['posts']
             post_id = data['id']-1
             select_btns = [types.InlineKeyboardButton(
                 text='->', callback_data='next_post')]
@@ -163,7 +165,7 @@ class Admin_commands:
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await state.update_data(id=post_id)
-            post = await neuroapi.post.get(posts[post_id]['uuid'])
+            post = await neuroapi.post.get(str(posts[post_id].uuid))
             await bot.edit_message_caption(caption=get_post_info(post, post_id), chat_id=callback.message.chat.id, message_id=data['edit_msg'], parse_mode='markdownv2')
             await callback.message.edit_reply_markup(reply_markup=keyboard)
             await callback.answer()
@@ -181,19 +183,20 @@ class Admin_commands:
         async def post(message: types.Message):
             posts = await neuroapi.post.get_will_post()
             if (posts):
-                post = await neuroapi.post.get(posts[0]['uuid'])
-                images = MediaGroupBuilder(caption=post['text'])
-                for image in sorted(post['images'], key=lambda x: x['message_id']):
-                    images.add_photo(image['file_id'],
-                                     has_spoiler=image['has_spoiler'])
+                post = await neuroapi.post.get(str(posts[0].uuid))
+                images = MediaGroupBuilder(caption=post.text)
+                image: nat.Image
+                for image in sorted(post.images, key=lambda x: x.message_id):
+                    images.add_photo(image.file_id,
+                                     has_spoiler=image.has_spoiler)
                 await message.answer_media_group(images.build())
             else:
                 await message.answer('Нет постов')
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
-            post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id)
-            await neuroapi.image.add(post['uuid'], message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
+            post: nat.Post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id)
+            await neuroapi.image.add(str(post.uuid), message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
             await message.answer('Пост успешно добавлен!')
 
         @self.router.message(ReplyToUser())
