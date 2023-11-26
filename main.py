@@ -4,9 +4,9 @@ import os
 import sys
 from os.path import dirname, join
 
-import aioschedule as schedule
+# import aioschedule as schedule
 import dotenv
-from aiogram import Bot, Dispatcher, F, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
 dotenv.load_dotenv()
