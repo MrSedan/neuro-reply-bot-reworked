@@ -5,16 +5,16 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.media_group import MediaGroupBuilder
 
+import neuroapi.types as neuroTypes
 from handlers.filters.new_post import (ChangePosts, NewPostFilter,
                                        NewSoloPostFilter)
 from handlers.filters.reply_to_user import ReplyToUser
 from handlers.middlewares.user import AdminMiddleware
 from handlers.states.change_post import ChangePost
 from neuroapi import neuroapi
-import neuroapi.types as nat
 
 
-def get_post_info(post: nat.Post, post_id: int) -> str:
+def get_post_info(post: neuroTypes.Post, post_id: int) -> str:
     text = post.text
     time = post.timestamp
     from_user = post.from_user_id
@@ -34,12 +34,12 @@ class Admin_commands:
 
         @self.router.message(NewPostFilter())
         async def new_post(message: types.Message):
-            post: nat.Post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
+            post: neuroTypes.Post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
             await neuroapi.image.add(str(post.uuid), message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
 
         @self.router.message(Command('info'))
         async def info_command(message: types.Message):
-            posts: List[nat.Post] = await neuroapi.post.get_will_post()
+            posts: List[neuroTypes.Post] = await neuroapi.post.get_will_post()
             post_c = {}
             for post in posts:
                 if post.from_user_id not in post_c:
@@ -68,7 +68,7 @@ class Admin_commands:
                 post = await neuroapi.post.get(str(posts[0].uuid))
                 images = MediaGroupBuilder(
                     caption=get_post_info(post, 1))
-                image: nat.Image
+                image: neuroTypes.Image
                 for image in sorted(post.images, key=lambda x: x.message_id):
                     images.add_photo(image.file_id,
                                      has_spoiler=image.has_spoiler, parse_mode='markdownv2')
@@ -86,7 +86,7 @@ class Admin_commands:
                 await callback.answer()
                 await callback.message.delete()
                 return
-            posts: List[nat.Post] = data['posts']
+            posts: List[neuroTypes.Post] = data['posts']
             post_id = data['id']+1
             select_btns = [types.InlineKeyboardButton(
                 text='<-', callback_data='prev_post')]
@@ -131,7 +131,7 @@ class Admin_commands:
             if 'posts' not in data:
                 await state.clear()
                 return
-            posts: List[nat.Post] = data['posts']
+            posts: List[neuroTypes.Post] = data['posts']
             post_id = data['id']
             post_uuid = str(posts[post_id].uuid)
             try:
@@ -149,7 +149,7 @@ class Admin_commands:
                 await callback.answer()
                 await callback.message.delete()
                 return
-            posts: List[nat.Post] = data['posts']
+            posts: List[neuroTypes.Post] = data['posts']
             post_id = data['id']-1
             select_btns = [types.InlineKeyboardButton(
                 text='->', callback_data='next_post')]
@@ -185,7 +185,7 @@ class Admin_commands:
             if (posts):
                 post = await neuroapi.post.get(str(posts[0].uuid))
                 images = MediaGroupBuilder(caption=post.text)
-                image: nat.Image
+                image: neuroTypes.Image
                 for image in sorted(post.images, key=lambda x: x.message_id):
                     images.add_photo(image.file_id,
                                      has_spoiler=image.has_spoiler)
@@ -195,7 +195,7 @@ class Admin_commands:
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
-            post: nat.Post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id)
+            post: neuroTypes.Post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id)
             await neuroapi.image.add(str(post.uuid), message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
             await message.answer('Пост успешно добавлен!')
 
