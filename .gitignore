@@ -1,5 +1,7 @@
 venv
 **/__pycache__
+.env.*
 .env
+!.env.example
 data
 **/*_old
