@@ -1,9 +1,10 @@
 import requests
 from aiohttp import ClientSession
 
+import neuroapi.types as neuroTypes
+
 from .api_method import ApiMethod
 from .enums import EGetAll
-import neuroapi.types as nat
 
 
 class Post(ApiMethod):
@@ -16,7 +17,7 @@ class Post(ApiMethod):
         data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return nat.Post.from_dict(data)
+        return neuroTypes.Post.from_dict(data)
 
     async def __get_all(self, status: EGetAll):
         async with ClientSession() as session:
@@ -25,15 +26,15 @@ class Post(ApiMethod):
 
     async def get_all(self):
         result = await self.__get_all(EGetAll.all)
-        return [nat.Post.from_dict(post) for post in await result.json()]
+        return [neuroTypes.Post.from_dict(post) for post in await result.json()]
 
     async def get_will_post(self):
         result = await self.__get_all(EGetAll.will_post)
-        return [nat.Post.from_dict(post) for post in await result.json()]
+        return [neuroTypes.Post.from_dict(post) for post in await result.json()]
 
     async def get_posted(self):
         result = await self.__get_all(EGetAll.posted)
-        return [nat.Post.from_dict(post) for post in await result.json()]
+        return [neuroTypes.Post.from_dict(post) for post in await result.json()]
 
     async def get(self, post_id: str):
         async with ClientSession() as session:
@@ -41,7 +42,7 @@ class Post(ApiMethod):
         data = await response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return nat.Post.from_dict(data)
+        return neuroTypes.Post.from_dict(data)
 
     async def get_by_media_group_id(self, media_group_id: str):
         response = requests.get(
@@ -49,7 +50,7 @@ class Post(ApiMethod):
         data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return nat.Post.from_dict(data)
+        return neuroTypes.Post.from_dict(data)
 
     async def edit_text(self, post_id: str, text: str):
         response = requests.post(
@@ -57,4 +58,4 @@ class Post(ApiMethod):
         data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return nat.Post.from_dict(data)
+        return neuroTypes.Post.from_dict(data)
