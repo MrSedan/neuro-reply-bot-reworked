@@ -1,20 +1,17 @@
-from typing import Any, List
+from typing import List
 
-from aiogram import Bot, F, Router, types
+from aiogram import Bot, F, types
 
+from handlers.handler import Handler
 from neuroapi import neuroapi
-
 from neuroapi.types import Admin as AdminType
 
 
-class User_commands:
-    bot: Bot
-    router: Router
+class UserCommands(Handler):
 
     def __init__(self, bot: Bot) -> None:
-        self.bot = bot
-        self.router = Router()
-
+        super().__init__(bot)
+        
         @self.router.message(F.chat.type == 'private')
         async def forward_post(message: types.Message):
             admins: List[AdminType] = await neuroapi.admin.get()
@@ -27,9 +24,3 @@ class User_commands:
                     canReply = False
             await message.reply('Ваше сообщение было отправлено администраторам'+('' if canReply else '\nНо они не смогут вам ответить из-за ваших настроек конфиденциальности.'))
 
-    def __call__(self, *args: Any, **kwds: Any) -> Router:
-        return self.router
-
-
-def setup(bot: Bot) -> Router:
-    return User_commands(bot)()

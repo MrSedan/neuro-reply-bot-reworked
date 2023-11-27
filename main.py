@@ -1,37 +1,68 @@
 import asyncio
 import logging
-import os
+import signal
 import sys
-from os.path import dirname, join
 
 # import aioschedule as schedule
-import dotenv
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart
+from aiogram import Bot, Dispatcher
 
-dotenv.load_dotenv()
+from handlers.admin_commands import AdminCommands
+from handlers.handler import Handler
+from handlers.user_commands import UserCommands
+from neuroapi.config import Config
 
-token = os.getenv('TOKEN')
 
-bot = Bot(token)
-dp = Dispatcher()
+class NeuroApiBot:
+    bot: Bot
+    dp: Dispatcher
+    
+    _instances = {}
+    
+    def __init__(self, token: str) -> None:
+        self.bot = Bot(token)
+        self.dp = Dispatcher()
+        self._instances
+    
+    def __new__(cls, token: str) -> 'NeuroApiBot':
+        assert isinstance(token, str)
+        if token not in cls._instances:
+            cls._instances[token] = super(NeuroApiBot, cls).__new__(cls)
+        return cls._instances[token]
+    
+    def include_router(self, *routerClasses: Handler) -> None:
+        for routerClass in routerClasses:
+            assert issubclass(routerClass, Handler)
+            self.dp.include_routers(routerClass(self.bot)())
+        
+    async def start(self, skip_updates=True):
+        await self.dp.start_polling(self.bot, skip_updates=skip_updates)
 
-@dp.message(CommandStart())
-async def start_message(message: types.Message):
-    await message.answer('Добро пожаловать в бота ')
+async def delay_bot()->None:
+    if Config().token is None: 
+        print('Delay bot needs token in environment')
+        return
+    bot = NeuroApiBot(Config().token)
+    bot.include_router(AdminCommands, UserCommands)
+    await bot.start()
 
-handlers_dir = join(dirname(__file__), 'handlers')
-
-for filename in os.listdir(handlers_dir):
-    if filename.endswith('.py'):
-        module_name = filename[:-3]
-        setup = __import__(f"handlers.{module_name}", locals(), globals(), ['setup']).setup
-        dp.include_router(setup(bot))
-
+async def proxy_bot()->None:
+    if Config().proxy_token is None: 
+        print('Proxy bot needs token in environment')
+        return
+    bot = NeuroApiBot(Config().proxy_token)
+    bot.include_router()
+    await bot.start()
 
 async def main() -> None:
-    await dp.start_polling(bot, skip_updates=True)
+    tasks = [asyncio.create_task(delay_bot()), asyncio.create_task(proxy_bot())]
+    await asyncio.gather(*tasks)
     
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame), loop.stop)
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass

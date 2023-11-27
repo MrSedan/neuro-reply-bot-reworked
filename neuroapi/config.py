@@ -1,21 +1,15 @@
 import os
 import tomllib
-from typing import List, Self, TypeVar
+from typing import List, Optional
 
 from attr import dataclass
 from dotenv import load_dotenv
 
+from neuroapi.types import Singleton
+
 from .types._helpers import *
 
 
-class _Singleton:
-    _instances = {}
-    
-    def __new__(cls) -> Self:
-        if cls not in cls._instances:
-            cls._instances[cls] = super(_Singleton, cls).__new__(cls)
-        return cls._instances[cls]
-    
 @dataclass
 class Settings:
     time: List[str]
@@ -31,9 +25,11 @@ class Settings:
         result['time'] = from_list(from_str, self.time)
         return result
 
-class Config(_Singleton):
+class Config(Singleton):
     api_url: str
     settings: Settings
+    token: Optional[str]
+    proxy_token: Optional[str]
     def __init__(self):
         load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
         if not os.path.exists(os.path.join(os.path.dirname(__file__), '..', 'settings.toml')): raise Exception('Settings.toml must be in root folder')
@@ -41,3 +37,9 @@ class Config(_Singleton):
             settings = tomllib.load(f)
             self.settings = Settings.from_dict(settings)
         self.api_url = os.environ.get('API_URL')
+        self.token = os.environ.get('TOKEN')
+        if self.token == '':
+            self.token = None
+        self.proxy_token = os.environ.get('PROXY_TOKEN')
+        if self.proxy_token == '':
+            self.proxy_token = None

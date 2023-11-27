@@ -1,6 +1,6 @@
-from typing import Any, List
+from typing import List
 
-from aiogram import Bot, F, Router, types
+from aiogram import Bot, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.media_group import MediaGroupBuilder
@@ -9,6 +9,7 @@ import neuroapi.types as neuroTypes
 from handlers.filters.new_post import (ChangePosts, NewPostFilter,
                                        NewSoloPostFilter)
 from handlers.filters.reply_to_user import ReplyToUser
+from handlers.handler import Handler
 from handlers.middlewares.user import AdminMiddleware
 from handlers.states.change_post import ChangePost
 from neuroapi import neuroapi
@@ -23,13 +24,9 @@ def get_post_info(post: neuroTypes.Post, post_id: int) -> str:
     return s
 
 
-class Admin_commands:
-    bot: Bot
-    router: Router
-
+class AdminCommands(Handler):
     def __init__(self, bot: Bot) -> None:
-        self.bot = bot
-        self.router = Router()
+        super().__init__(bot)
         self.router.message.middleware(AdminMiddleware())
 
         @self.router.message(NewPostFilter())
@@ -210,9 +207,4 @@ class Admin_commands:
                 except Exception as e:
                     print(e)
 
-    def __call__(self, *args: Any, **kwds: Any) -> Router:
-        return self.router
 
-
-def setup(bot: Bot) -> Router:
-    return Admin_commands(bot)()
