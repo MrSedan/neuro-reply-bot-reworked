@@ -18,7 +18,7 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start_message(message: types.Message):
-    await message.answer('Абоба')
+    await message.answer('Добро пожаловать в бота ')
 
 handlers_dir = join(dirname(__file__), 'handlers')
 
