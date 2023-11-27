@@ -3,39 +3,13 @@ import logging
 import signal
 import sys
 
-# import aioschedule as schedule
-from aiogram import Bot, Dispatcher
-
 from handlers.admin_commands import AdminCommands
-from handlers.handler import Handler
 from handlers.user_commands import UserCommands
 from neuroapi.config import Config
+from neuroapi.types import NeuroApiBot
 
+# import aioschedule as schedule
 
-class NeuroApiBot:
-    bot: Bot
-    dp: Dispatcher
-    
-    _instances = {}
-    
-    def __init__(self, token: str) -> None:
-        self.bot = Bot(token)
-        self.dp = Dispatcher()
-        self._instances
-    
-    def __new__(cls, token: str) -> 'NeuroApiBot':
-        assert isinstance(token, str)
-        if token not in cls._instances:
-            cls._instances[token] = super(NeuroApiBot, cls).__new__(cls)
-        return cls._instances[token]
-    
-    def include_router(self, *routerClasses: Handler) -> None:
-        for routerClass in routerClasses:
-            assert issubclass(routerClass, Handler)
-            self.dp.include_routers(routerClass(self.bot)())
-        
-    async def start(self, skip_updates=True):
-        await self.dp.start_polling(self.bot, skip_updates=skip_updates)
 
 async def delay_bot()->None:
     if Config().token is None: 
