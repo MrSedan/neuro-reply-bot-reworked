@@ -3,6 +3,8 @@ import logging
 import signal
 import sys
 
+import aiohttp
+
 from handlers.admin_commands import AdminCommands
 from handlers.user_commands import UserCommands
 from neuroapi.config import Config
@@ -28,6 +30,20 @@ async def proxy_bot()->None:
     await bot.start()
 
 async def main() -> None:
+    for i in range(5):
+        print(f'Checking connectivity to backend ({i+1}/5)...')
+        try:
+            async with aiohttp.ClientSession() as session:
+                response = await session.get(Config().api_url+'/ping')
+                data = str(await response.content.read(), encoding='utf-8')
+                if data == 'pong':
+                    print('Successfully connected to backend')
+                    break
+                else:
+                    raise TimeoutError()
+        except:
+            print('Error! Waiting 3 secs and retrying...')
+            await asyncio.sleep(3)
     tasks = [asyncio.create_task(delay_bot()), asyncio.create_task(proxy_bot())]
     await asyncio.gather(*tasks)
     
