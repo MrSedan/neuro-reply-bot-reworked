@@ -12,7 +12,6 @@ class NeuroApiBot:
     def __init__(self, token: str) -> None:
         self.bot = Bot(token)
         self.dp = Dispatcher()
-        self._instances
     
     def __new__(cls, token: str) -> 'NeuroApiBot':
         assert isinstance(token, str)
