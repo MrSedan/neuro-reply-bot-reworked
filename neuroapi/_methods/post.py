@@ -59,3 +59,13 @@ class Post(ApiMethod):
         if 'statusCode' in data:
             raise Exception(data['message'])
         return neuroTypes.Post.from_dict(data)
+
+    async def get_post_to_post(self):
+        response = requests.get(self.api_url+f"/post/post")
+        data = response.json()
+        if 'statusCode' in data:
+            if response.status_code==404:
+                return None
+            else:
+                raise Exception(data['message'])
+        return neuroTypes.Post.from_dict(data)

@@ -178,17 +178,19 @@ class AdminCommands(Handler):
 
         @self.router.message(Command('post'))
         async def post(message: types.Message):
-            posts = await neuroapi.post.get_will_post()
-            if (posts):
-                post = await neuroapi.post.get(str(posts[0].uuid))
-                images = MediaGroupBuilder(caption=post.text)
-                image: neuroTypes.Image
-                for image in sorted(post.images, key=lambda x: x.message_id):
-                    images.add_photo(image.file_id,
-                                     has_spoiler=image.has_spoiler)
-                await message.answer_media_group(images.build())
-            else:
-                await message.answer('Нет постов')
+            try:
+                post = await neuroapi.post.get_post_to_post()
+                if (post):
+                    images = MediaGroupBuilder(caption=post.text)
+                    image: neuroTypes.Image
+                    for image in sorted(post.images, key=lambda x: x.message_id):
+                        images.add_photo(image.file_id,
+                                        has_spoiler=image.has_spoiler)
+                    await message.answer_media_group(images.build())
+                else:
+                    await message.answer('Нет постов')
+            except Exception as e:
+                await message.answer(f'Ошибка {e}')
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
