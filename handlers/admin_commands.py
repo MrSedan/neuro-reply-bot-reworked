@@ -220,6 +220,8 @@ class AdminCommands(Handler):
             self.settings = await neuroapi.bot_settings.get()
             schedule.clear()
             schedule.every().minute.do(update_settings, None)
+            
+            #TODO: Сделать в бэке и в боте, чтоб дни тоже можно было в настройках хранить
             for i in self.settings.message_times:
                 schedule.every().monday.at(i).do(post, None)
                 schedule.every().tuesday.at(i).do(post, None)
