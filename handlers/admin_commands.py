@@ -1,5 +1,7 @@
+import asyncio
 from typing import List
 
+import aioschedule as schedule
 from aiogram import Bot, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -13,6 +15,7 @@ from handlers.handler import Handler
 from handlers.middlewares.user import AdminMiddleware
 from handlers.states.change_post import ChangePost
 from neuroapi import neuroapi
+from neuroapi.types import BotSettings as BotSettingsType
 
 
 def get_post_info(post: neuroTypes.Post, post_id: int) -> str:
@@ -25,10 +28,11 @@ def get_post_info(post: neuroTypes.Post, post_id: int) -> str:
 
 
 class AdminCommands(Handler):
+    settings: BotSettingsType
     def __init__(self, bot: Bot) -> None:
         super().__init__(bot)
         self.router.message.middleware(AdminMiddleware())
-
+        
         @self.router.message(NewPostFilter())
         async def new_post(message: types.Message):
             post: neuroTypes.Post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
@@ -208,5 +212,22 @@ class AdminCommands(Handler):
                     await message.reply('Ваше сообщение было отправлено!')
                 except Exception as e:
                     print(e)
+        
+        @self.router.message(Command('update_settings'))
+        async def update_settings(mes: types.Message| None = None):
+            self.settings = await neuroapi.bot_settings.get()
+            if mes: await mes.answer('Настройки обновлены!')
+        
+        
+        async def schedule_checker():
+            await update_settings()
+            schedule.every().minute.do(update_settings, None)
+            while 1:
+                await schedule.run_pending()
+                await asyncio.sleep(1)
+        
+        asyncio.create_task(schedule_checker())
+        
+            
 
 
