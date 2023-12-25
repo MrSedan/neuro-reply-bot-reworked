@@ -181,7 +181,7 @@ class AdminCommands(Handler):
                 await bot.delete_message(message_id=data['edit_msg'], chat_id=callback.message.chat.id)
 
         @self.router.message(Command('post'))
-        async def post(message: types.Message):
+        async def post(message: types.Message | None = None):
             try:
                 post = await neuroapi.post.get_post_to_post()
                 if (post):
@@ -190,11 +190,13 @@ class AdminCommands(Handler):
                     for image in sorted(post.images, key=lambda x: x.message_id):
                         images.add_photo(image.file_id,
                                         has_spoiler=image.has_spoiler)
-                    await message.answer_media_group(images.build())
-                else:
+                    await self.bot.send_media_group(self.settings.channel, images.build())
+                    if message:
+                        await message.answer('Посту успешно опубликован!')
+                elif message:
                     await message.answer('Нет постов')
             except Exception as e:
-                await message.answer(f'Ошибка {e}')
+                if message: await message.answer(f'Ошибка {e}')
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
@@ -216,17 +218,26 @@ class AdminCommands(Handler):
         @self.router.message(Command('update_settings'))
         async def update_settings(mes: types.Message| None = None):
             self.settings = await neuroapi.bot_settings.get()
+            schedule.clear()
+            schedule.every().minute.do(update_settings, None)
+            for i in self.settings.message_times:
+                schedule.every().monday.at(i).do(post, None)
+                schedule.every().tuesday.at(i).do(post, None)
+                schedule.every().wednesday.at(i).do(post, None)
+                schedule.every().thursday.at(i).do(post, None)
+                schedule.every().friday.at(i).do(post, None)
+                if i not in ['10:00', '20:00']:
+                    schedule.every().sunday.at(i).do(post, None)
             if mes: await mes.answer('Настройки обновлены!')
         
         
-        async def schedule_checker():
+        async def settings_and_schedule_checker():
             await update_settings()
-            schedule.every().minute.do(update_settings, None)
             while 1:
                 await schedule.run_pending()
                 await asyncio.sleep(1)
         
-        asyncio.create_task(schedule_checker())
+        asyncio.create_task(settings_and_schedule_checker())             
         
             
 
