@@ -11,8 +11,6 @@ from handlers.user_commands import UserCommands
 from neuroapi.config import Config
 from neuroapi.types import NeuroApiBot
 
-# import aioschedule as schedule
-
 
 async def delay_bot()->None:
     if Config().token is None: 
