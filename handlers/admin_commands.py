@@ -29,10 +29,11 @@ def get_post_info(post: neuroTypes.Post, post_id: int) -> str:
 
 class AdminCommands(Handler):
     settings: BotSettingsType
+
     def __init__(self, bot: Bot) -> None:
         super().__init__(bot)
         self.router.message.middleware(AdminMiddleware())
-        
+
         @self.router.message(NewPostFilter())
         async def new_post(message: types.Message):
             post: neuroTypes.Post = await neuroapi.post.get_by_media_group_id(message.media_group_id)
@@ -41,14 +42,33 @@ class AdminCommands(Handler):
         @self.router.message(Command('info'))
         async def info_command(message: types.Message):
             posts: List[neuroTypes.Post] = await neuroapi.post.get_will_post()
+            admins: List[neuroTypes.Admin] = await neuroapi.admin.get()
             post_c = {}
             for post in posts:
                 if post.from_user_id not in post_c:
                     post_c[post.from_user_id] = 1
                 else:
                     post_c[post.from_user_id] += 1
-            await message.answer(str(post_c))
+            res = "Количество постов от админов:\n"
+            res2 = "\nПосты:\n"
+            for admin in admins:
+                if admin.user_id in post_c:
+                    res += f'[{admin.user_name}](tg://user?id={admin.user_id}): {post_c[admin.user_id]}\n'
+                else:
+                    res += f'[{admin.user_name}](tg://user?id={admin.user_id}): 0\n'
+                admin_posts = list(
+                    filter(lambda x: x.from_user_id == admin.user_id, posts))
+                res2 += f'Посты от {admin.user_name}:\n'
+                if len(admin_posts):
+                    for i, post in enumerate(admin_posts):
+                        #TODO: Если возможно, сделать чтоб было ссылкой на сообщений с /newpost
+                        res2 += f'{i+1}. {post.text}\n'
+                else:
+                    res2 += 'Их нет\)\n'
+            await message.answer((res+res2).replace('#', '\#').replace("_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!'), parse_mode='markdownv2')
 
+        """
+        TODO: Изменение постов сделать нормально, не через редактирование сообщений
         @self.router.message(ChangePosts())
         async def change_post(message: types.Message, state: FSMContext):
             posts = await neuroapi.post.get_will_post()
@@ -179,24 +199,27 @@ class AdminCommands(Handler):
             data = await state.get_data()
             if 'edit_msg' in data:
                 await bot.delete_message(message_id=data['edit_msg'], chat_id=callback.message.chat.id)
+        """
 
         @self.router.message(Command('post'))
         async def post(message: types.Message | None = None):
             try:
                 post = await neuroapi.post.get_post_to_post()
                 if (post):
-                    images = MediaGroupBuilder(caption=post.text + '\n\nПредложка: @neur0w0men_reply_bot')
+                    images = MediaGroupBuilder(
+                        caption=post.text + '\n\nПредложка: @neur0w0men_reply_bot')
                     image: neuroTypes.Image
                     for image in sorted(post.images, key=lambda x: x.message_id):
                         images.add_photo(image.file_id,
-                                        has_spoiler=image.has_spoiler)
+                                         has_spoiler=image.has_spoiler)
                     await self.bot.send_media_group(self.settings.channel, images.build())
                     if message:
                         await message.answer('Пост успешно опубликован!')
                 elif message:
                     await message.answer('Нет постов')
             except Exception as e:
-                if message: await message.answer(f'Ошибка {e}')
+                if message:
+                    await message.answer(f'Ошибка {e}')
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
@@ -214,14 +237,14 @@ class AdminCommands(Handler):
                     await message.reply('Ваше сообщение было отправлено!')
                 except Exception as e:
                     print(e)
-        
+
         @self.router.message(Command('update_settings'))
-        async def update_settings(mes: types.Message| None = None):
+        async def update_settings(mes: types.Message | None = None):
             self.settings = await neuroapi.bot_settings.get()
             schedule.clear()
             schedule.every().minute.do(update_settings, None)
-            
-            #TODO: Сделать в бэке и в боте, чтоб дни тоже можно было в настройках хранить
+
+            # TODO: Сделать в бэке и в боте, чтоб дни тоже можно было в настройках хранить
             for i in self.settings.message_times:
                 schedule.every().monday.at(i).do(post, None)
                 schedule.every().tuesday.at(i).do(post, None)
@@ -230,17 +253,13 @@ class AdminCommands(Handler):
                 schedule.every().friday.at(i).do(post, None)
                 if i not in ['10:00', '20:00']:
                     schedule.every().sunday.at(i).do(post, None)
-            if mes: await mes.answer('Настройки обновлены!')
-        
-        
+            if mes:
+                await mes.answer('Настройки обновлены!')
+
         async def settings_and_schedule_checker():
             await update_settings()
             while 1:
                 await schedule.run_pending()
                 await asyncio.sleep(1)
-        
-        asyncio.create_task(settings_and_schedule_checker())             
-        
-            
 
-
+        asyncio.create_task(settings_and_schedule_checker())
