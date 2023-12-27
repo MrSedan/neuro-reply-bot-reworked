@@ -185,14 +185,14 @@ class AdminCommands(Handler):
             try:
                 post = await neuroapi.post.get_post_to_post()
                 if (post):
-                    images = MediaGroupBuilder(caption=post.text)
+                    images = MediaGroupBuilder(caption=post.text + '\n\nПредложка: @neur0w0men_reply_bot')
                     image: neuroTypes.Image
                     for image in sorted(post.images, key=lambda x: x.message_id):
                         images.add_photo(image.file_id,
                                         has_spoiler=image.has_spoiler)
                     await self.bot.send_media_group(self.settings.channel, images.build())
                     if message:
-                        await message.answer('Посту успешно опубликован!')
+                        await message.answer('Пост успешно опубликован!')
                 elif message:
                     await message.answer('Нет постов')
             except Exception as e:
