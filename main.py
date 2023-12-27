@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import platform
 import signal
 import sys
 
@@ -50,9 +51,17 @@ async def main() -> None:
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     loop = asyncio.get_event_loop()
-    for signame in ('SIGINT', 'SIGTERM'):
-        loop.add_signal_handler(getattr(signal, signame), loop.stop)
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    if platform.system() == 'Windows':
+        try:
+            loop.run_until_complete(main())
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt occurred")
+        finally:
+            loop.close()
+    else: 
+        for signame in ('SIGINT', 'SIGTERM'):
+            loop.add_signal_handler(getattr(signal, signame), loop.stop)
+        try:
+            asyncio.run(main())
+        except KeyboardInterrupt:
+            pass
