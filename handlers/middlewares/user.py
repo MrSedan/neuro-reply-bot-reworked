@@ -11,6 +11,8 @@ class AdminMiddleware(BaseMiddleware):
         pass
     
     async def __call__(self, handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]], event: Message, data: Dict[str, Any]) -> Any:
+        if event.chat.type not in ['private', 'group']:
+            return None
         await neuroapi.user.get(str(event.from_user.id), event.from_user.username)
         isAdmin = await neuroapi.admin.is_admin(str(event.from_user.id))
         if not isAdmin:
