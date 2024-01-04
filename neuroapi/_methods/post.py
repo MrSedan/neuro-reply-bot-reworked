@@ -1,4 +1,8 @@
+import json
+from typing import List, Optional
+
 import requests
+from aiogram.types import MessageEntity
 from aiohttp import ClientSession
 
 import neuroapi.types as neuroTypes
@@ -9,10 +13,18 @@ from .enums import EGetAll
 
 class Post(ApiMethod):
 
-    async def new(self, text: str, from_user_id: str, media_group_id: str = "None"):
+    async def new(self, text: str, from_user_id: str, media_group_id: str = "None", message_entities: Optional[List[MessageEntity]] = None):
         payload = {'text': text, 'from_user_id': from_user_id}
         if media_group_id != 'None':
             payload['media_group_id'] = media_group_id
+        if message_entities is not None:
+            mes_ent = list(map(lambda x: x.model_dump(), message_entities))
+            arr =[]
+            for item in mes_ent:
+                if item['type'] == 'bot_command': continue
+                item['offset'] -= 9
+                arr.append(item)
+            payload['message_entities'] = json.dumps(arr)
         response = requests.post(self.api_url+'/post/new', data=payload)
         data = response.json()
         if 'statusCode' in data:

@@ -14,7 +14,7 @@ class NewPostFilter(Filter):
             if not (message.caption.startswith('/newpost ') if message.caption else False):
                 return False
             await neuroapi.post.new(message.caption.replace(
-                '/newpost ', ''), str(message.from_user.id), str(message.media_group_id))
+                '/newpost ', ''), str(message.from_user.id), str(message.media_group_id), message.caption_entities)
             await message.answer('Пост успешно добавлен!')
         return True
 
