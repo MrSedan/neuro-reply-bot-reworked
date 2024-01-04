@@ -69,8 +69,9 @@ class AdminCommands(Handler):
                             entity.offset += 3+res2.index(s)
                             posts_entities.append(entity)
                 else:
-                    res2 += 'Их нет\)\n'
-            await message.answer(res, parse_mode='markdownv2')
+                    res2 += 'Их нет)\n'
+            await message.answer(res.replace('#', '\#').replace(
+        "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:').replace('+', '\+'), parse_mode='markdownv2')
             await message.answer(res2, entities=posts_entities)
 
         """
