@@ -51,6 +51,7 @@ class AdminCommands(Handler):
                     post_c[post.from_user_id] += 1
             res = "Количество постов от админов:\n"
             res2 = "\nПосты:\n"
+            posts_entities: List[types.MessageEntity] = []
             for admin in admins:
                 if admin.user_id in post_c:
                     res += f'[{admin.user_name}](tg://user?id={admin.user_id}): {post_c[admin.user_id]}\n'
@@ -61,11 +62,17 @@ class AdminCommands(Handler):
                 res2 += f'Посты от {admin.user_name}:\n'
                 if len(admin_posts):
                     for i, post in enumerate(admin_posts):
-                        #TODO: Если возможно, сделать чтоб было ссылкой на сообщений с /newpost
-                        res2 += f'{i+1}. {post.text}\n'
+                        # TODO: Если возможно, сделать чтоб было ссылкой на сообщений с /newpost
+                        s = f'{i+1}. {post.text}\n'
+                        res2 += s
+                        for entity in post.message_entities:
+                            entity.offset += 3+res2.index(s)
+                            posts_entities.append(entity)
                 else:
-                    res2 += 'Их нет\)\n'
-            await message.answer((res+res2).replace('#', '\#').replace("_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!'), parse_mode='markdownv2')
+                    res2 += 'Их нет)\n'
+            await message.answer(res.replace('#', '\#').replace(
+        "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:').replace('+', '\+'), parse_mode='markdownv2')
+            await message.answer(res2, entities=posts_entities)
 
         """
         TODO: Изменение постов сделать нормально, не через редактирование сообщений
@@ -207,7 +214,7 @@ class AdminCommands(Handler):
                 post = await neuroapi.post.get_post_to_post()
                 if (post):
                     images = MediaGroupBuilder(
-                        caption=post.text + '\n\nПредложка: @neur0w0men_reply_bot')
+                        caption=post.text + '\n\nПредложка: @neur0w0men_reply_bot', caption_entities=post.message_entities)
                     image: neuroTypes.Image
                     for image in sorted(post.images, key=lambda x: x.message_id):
                         images.add_photo(image.file_id,
@@ -223,7 +230,7 @@ class AdminCommands(Handler):
 
         @self.router.message(NewSoloPostFilter())
         async def post_solo(message: types.Message):
-            post: neuroTypes.Post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id)
+            post: neuroTypes.Post = await neuroapi.post.new(message.caption.replace('/newpost ', ''), message.from_user.id, message_entities=message.caption_entities)
             await neuroapi.image.add(str(post.uuid), message.photo[-1].file_id, message.has_media_spoiler, message.message_id)
             await message.answer('Пост успешно добавлен!')
 
@@ -233,7 +240,7 @@ class AdminCommands(Handler):
                 await message.reply('Пользователь стесняшка и не разрешает отвечать на его сообщения...')
             else:
                 try:
-                    await bot.send_message(message.reply_to_message.forward_from.id, f'Вам ответил админ:\n{message.text}')
+                    await bot.send_message(message.reply_to_message.forward_from.id, f'Вам ответил админ:\n{message.text}', entities=message.entities)
                     await message.reply('Ваше сообщение было отправлено!')
                 except Exception as e:
                     print(e)
