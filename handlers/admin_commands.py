@@ -59,7 +59,7 @@ class AdminCommands(Handler):
                     res += f'[{admin.user_name}](tg://user?id={admin.user_id}): 0\n'
                 admin_posts = list(
                     filter(lambda x: x.from_user_id == admin.user_id, posts))
-                res2 += f'Посты от {admin.user_name}:\n'
+                res2 += f'\nПосты от {admin.user_name}:\n'
                 if len(admin_posts):
                     for i, post in enumerate(admin_posts):
                         # TODO: Если возможно, сделать чтоб было ссылкой на сообщений с /newpost
