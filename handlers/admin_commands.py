@@ -44,6 +44,7 @@ class AdminCommands(Handler):
             posts: List[neuroTypes.Post] = await neuroapi.post.get_will_post()
             admins: List[neuroTypes.Admin] = await neuroapi.admin.get()
             post_c = {}
+            k = 1
             for post in posts:
                 if post.from_user_id not in post_c:
                     post_c[post.from_user_id] = 1
@@ -63,10 +64,11 @@ class AdminCommands(Handler):
                 if len(admin_posts):
                     for i, post in enumerate(admin_posts):
                         # TODO: Если возможно, сделать чтоб было ссылкой на сообщений с /newpost
-                        s = f'{i+1}. {post.text}\n'
+                        s = f'{i+1}.({k}) {post.text}\n'
+                        k+=1
                         res2 += s
                         for entity in post.message_entities:
-                            entity.offset += 3+res2.index(s)
+                            entity.offset += 6+res2.index(s)
                             posts_entities.append(entity)
                 else:
                     res2 += 'Их нет)\n'
