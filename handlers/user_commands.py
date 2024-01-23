@@ -1,6 +1,7 @@
 from typing import List
 
 from aiogram import Bot, F, types
+from aiogram.filters import CommandStart
 
 from handlers.handler import Handler
 from neuroapi import neuroapi
@@ -11,6 +12,10 @@ class UserCommands(Handler):
 
     def __init__(self, bot: Bot) -> None:
         super().__init__(bot)
+        
+        @self.router.message(CommandStart())
+        async def start_command(message: types.Message):
+            await message.answer("Добро пожаловать! Данный бот - предложка для канала @neur0w0men. Отправляйте свои пожелания насчет нейрокартинок, а также свои картинки, а админы постараются заняться этим!\nДанный бот принимает текст, картинки, документы и стикеры.")
         
         @self.router.message(F.chat.type == 'private')
         async def forward_post(message: types.Message):
