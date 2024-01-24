@@ -72,6 +72,13 @@ class Post(ApiMethod):
             raise Exception(data['message'])
         return neuroTypes.Post.from_dict(data)
 
+    async def edit_text_by_order_num(self, order: str, text: str):
+        response = requests.post(self.api_url + f"/post/edit-post-by-order-num/{order}", data={"text": text})
+        data = response.json()
+        if 'statusCode' in data:
+            raise Exception(data['message'])
+        return neuroTypes.Post.from_dict(data)
+    
     async def get_post_to_post(self):
         response = requests.get(self.api_url+f"/post/post")
         data = response.json()

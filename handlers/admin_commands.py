@@ -76,6 +76,20 @@ class AdminCommands(Handler):
         "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:').replace('+', '\+'), parse_mode='markdownv2')
             await message.answer(res2, entities=posts_entities)
 
+        #TODO: Сделать изменение Message Entities
+        @self.router.message(Command('edit'))
+        async def edit_post_by_order_num(message: types.Message):
+            command = message.text.split(' ', 2)
+            print(command)
+            if len(command)<3:
+                await message.reply('Недостаточно аргементов!')
+                return
+            try: 
+                await neuroapi.post.edit_text_by_order_num(command[1], command[2])
+                await message.reply(f'Текст поста успешно изменен на: {command[2]}')
+            except Exception as e:
+                await message.reply(f'Ошибка: {e}')
+        
         """
         TODO: Изменение постов сделать нормально, не через редактирование сообщений
         @self.router.message(ChangePosts())
