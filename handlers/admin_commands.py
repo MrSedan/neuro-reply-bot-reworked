@@ -80,9 +80,8 @@ class AdminCommands(Handler):
         @self.router.message(Command('edit'))
         async def edit_post_by_order_num(message: types.Message):
             command = message.text.split(' ', 2)
-            print(command)
             if len(command)<3:
-                await message.reply('Недостаточно аргементов!')
+                await message.reply('Недостаточно аргументов!')
                 return
             try: 
                 await neuroapi.post.edit_text_by_order_num(command[1], command[2])
@@ -260,6 +259,12 @@ class AdminCommands(Handler):
                     await message.reply('Ваше сообщение было отправлено!')
                 except Exception as e:
                     print(e)
+        
+        @self.router.message(Command('settings'))
+        async def info_settings(mes: types.Message):
+            s = f"Текущие настройки:\nКанал: {self.settings.channel}\nВремя: {', '.join(self.settings.message_times)}"
+            await mes.answer(s)
+            
 
         @self.router.message(Command('update_settings'))
         async def update_settings(mes: types.Message | None = None):
