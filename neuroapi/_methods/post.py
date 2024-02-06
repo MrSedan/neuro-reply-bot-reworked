@@ -72,8 +72,19 @@ class Post(ApiMethod):
             raise Exception(data['message'])
         return neuroTypes.Post.from_dict(data)
 
-    async def edit_text_by_order_num(self, order: str, text: str):
-        response = requests.post(self.api_url + f"/post/edit-post-by-order-num/{order}", data={"text": text})
+    async def edit_text_by_order_num(self, order: str, text: str, message_entities: Optional[List[MessageEntity]] = None):
+        payload = {"text": text}
+        if message_entities is not None:
+            if message_entities is not None:
+                mes_ent = list(map(lambda x: x.model_dump(), message_entities))
+                arr =[]
+                print(mes_ent)
+                for item in mes_ent:
+                    if item['type'] == 'bot_command': continue
+                    item['offset'] -= 7+len(order)
+                    arr.append(item)
+                payload['message_entities'] = json.dumps(arr)
+        response = requests.post(self.api_url + f"/post/edit-post-by-order-num/{order}", data=payload)
         data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])

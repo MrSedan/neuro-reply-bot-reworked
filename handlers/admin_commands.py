@@ -76,7 +76,6 @@ class AdminCommands(Handler):
         "_", "\_").replace('.', '\.').replace(',', '\,').replace('!', '\!').replace('-', '\-').replace(':', '\:').replace('+', '\+'), parse_mode='markdownv2')
             await message.answer(res2, entities=posts_entities)
 
-        #TODO: Сделать изменение Message Entities
         @self.router.message(Command('edit'))
         async def edit_post_by_order_num(message: types.Message):
             command = message.text.split(' ', 2)
@@ -84,7 +83,8 @@ class AdminCommands(Handler):
                 await message.reply('Недостаточно аргументов!')
                 return
             try: 
-                await neuroapi.post.edit_text_by_order_num(command[1], command[2])
+                await neuroapi.post.edit_text_by_order_num(command[1], command[2], message.entities)
+                #TODO: Message Entities для уведомления об изменении поста
                 await message.reply(f'Текст поста успешно изменен на: {command[2]}')
             except Exception as e:
                 await message.reply(f'Ошибка: {e}')
