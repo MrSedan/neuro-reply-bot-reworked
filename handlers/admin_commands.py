@@ -279,8 +279,7 @@ class AdminCommands(Handler):
                 schedule.every().wednesday.at(i).do(post, None)
                 schedule.every().thursday.at(i).do(post, None)
                 schedule.every().friday.at(i).do(post, None)
-                if i not in ['10:00', '20:00']:
-                    schedule.every().sunday.at(i).do(post, None)
+                schedule.every().sunday.at(i).do(post, None)
             if mes:
                 await mes.answer('Настройки обновлены!')
 
