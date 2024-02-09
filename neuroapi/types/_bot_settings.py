@@ -1,11 +1,13 @@
 from dataclasses import dataclass
+from typing import Optional
 from uuid import UUID
 
 from ._helpers import *
+from ._singleton import Singleton
 
 
 @dataclass
-class BotSettings:
+class BotSettings(Singleton):
     uuid: UUID
     message_times: List[str]
     channel: str
@@ -27,3 +29,10 @@ class BotSettings:
         result["channel"] = from_str(self.channel)
         result["isActive"] = from_bool(self.is_active)
         return result
+
+    @staticmethod
+    def get_active() -> Optional['BotSettings']:
+        try:
+            return BotSettings._instances[BotSettings]
+        except:
+            return None
