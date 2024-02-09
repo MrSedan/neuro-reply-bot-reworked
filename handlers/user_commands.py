@@ -3,6 +3,7 @@ from typing import List
 from aiogram import Bot, F, types
 from aiogram.enums import ChatMemberStatus
 from aiogram.filters import Command, CommandStart
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from handlers.handler import Handler
 from neuroapi import neuroapi
@@ -31,9 +32,14 @@ class UserCommands(Handler):
             admins: List[AdminType] = await neuroapi.admin.get()
             canReply = True
             for admin in admins:
+                bankeyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+                    [
+                        types.InlineKeyboardButton(text='❌ Баннах', callback_data=f'ban {message.from_user.id}')                        
+                    ]
+                ])
                 await bot.send_message(admin.user_id, f'Вам новое сообщение от пользователя {message.from_user.full_name}. ' +
                                        (f'\nНик: @{message.from_user.username}' if message.from_user.username else f'ID: {message.from_user.id}') + 
-                                       f'\nПользователь{" не " if user_in_channel else " "}состоит в канале')
+                                       f'\nПользователь{" не " if user_in_channel else " "}состоит в канале.', reply_markup=bankeyboard)
                 try:
                     forwarded_message = await bot.forward_message(admin.user_id, message.chat.id, message.message_id)
                     if forwarded_message.forward_from is None:
@@ -41,3 +47,30 @@ class UserCommands(Handler):
                 except:
                     pass
             await message.reply('Ваше сообщение было отправлено администраторам'+('' if canReply else '\nНо они не смогут вам ответить из-за ваших настроек конфиденциальности.'))
+        
+        @self.router.callback_query(lambda query: True)
+        async def handle_button_click(callback_query: types.CallbackQuery):
+            admins: List[AdminType] = await neuroapi.admin.get()
+            callback_data = callback_query.data.split()
+            unbankeyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+                    [
+                        types.InlineKeyboardButton(text='✅ Пардон, мсье', callback_data=f'unban {callback_data[1]}')                        
+                    ]
+                ])
+            for admin in admins:
+                if callback_data[0] == 'ban':
+                    try:
+                        await neuroapi.user.ban(callback_data[1])
+                        await bot.send_message(admin.user_id, f'Великий банхаммер покарал пользователя {callback_data[1]}.', reply_markup=unbankeyboard)
+                    except Exception as ex: 
+                        await bot.answer_callback_query(callback_query.id, f'Не смог забанить, {ex}')
+                        pass
+                    await bot.answer_callback_query(callback_query.id)
+                if callback_data[0] == 'unban':
+                    try:
+                         await bot.send_message(admin.user_id, f'Великий банхаммер пощадил пользователя {callback_data[1]}.')
+                    except:
+                        await neuroapi.user.unban(callback_data[1])
+                        await bot.answer_callback_query(callback_query.id, f'Банхаммер не прощает, {ex}')
+                        pass
+                    await bot.answer_callback_query(callback_query.id)

@@ -12,3 +12,17 @@ class User(ApiMethod):
         data = await response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
+    
+    async def ban(self, id: str):
+        async with ClientSession() as session:
+            response = await session.put(self.api_url+'/user/ban/' + id)
+            data = await response.json()
+            if 'statusCode' in data:
+                raise Exception(f'Request failed with status code {response.status}')
+
+    async def unban(self, id: str):
+        async with ClientSession() as session:
+            response = await session.put(self.api_url+'/user/unban/' + id)
+            data = await response.json()
+            if 'statusCode' in data:
+                raise Exception(f'Request failed with status code {response.status}')
