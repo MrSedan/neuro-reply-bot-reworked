@@ -64,7 +64,7 @@ class AdminCommands(Handler):
                 if len(admin_posts):
                     for i, post in enumerate(admin_posts):
                         # TODO: Если возможно, сделать чтоб было ссылкой на сообщений с /newpost
-                        s = f'{i+1}.({k}) {post.text}\n'
+                        s = f'{i+1}.({posts.index(post)+1}) {post.text}\n'
                         k+=1
                         res2 += s
                         for entity in post.message_entities:
