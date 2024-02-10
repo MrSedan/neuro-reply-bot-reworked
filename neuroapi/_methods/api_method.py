@@ -1,8 +1,7 @@
-from ..config import Config
+from pydantic import BaseModel, Field
+
+from ..config import GlobalConfig as Config
 
 
-class ApiMethod:
-    api_url: str
-
-    def __init__(self) -> None:
-        self.api_url = Config().api_url
+class ApiMethod(BaseModel):
+    api_url: str = Field(Config().api_url)

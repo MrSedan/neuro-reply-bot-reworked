@@ -1,22 +1,17 @@
-from dataclasses import dataclass
-from typing import Any
-from ._helpers import *
+import json
+from typing import Optional
+
+from pydantic import Field
+
+from ._api_model import ApiModel
 
 
-@dataclass
-class User:
+class User(ApiModel):
     id: int
-    username: str
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'User':
-        assert isinstance(obj, dict)
-        id = int(from_str(obj.get("id")))
-        username = from_str(obj.get("username"))
-        return User(id, username)
+    username: str = Field(..., alias='user_name')
+    banned: Optional[bool] = Field(None)
 
     def to_dict(self) -> dict:
-        result: dict = {}
-        result["id"] = from_str(str(self.id))
-        result["username"] = from_str(self.username)
-        return result
+        obj = super().to_dict(exclude_unset=True)
+        obj['id'] = str(obj['id'])
+        return obj

@@ -1,7 +1,11 @@
 from aiogram import Bot, Dispatcher
+from pydantic import BaseModel
 
 from handlers.handler import Handler
 
+
+class Token(BaseModel):
+    token: str
 
 class NeuroApiBot:
     bot: Bot
@@ -10,14 +14,15 @@ class NeuroApiBot:
     _instances = {}
     
     def __init__(self, token: str) -> None:
-        self.bot = Bot(token)
+        token_data = Token(token=token)
+        self.bot = Bot(token_data.token)
         self.dp = Dispatcher()
     
     def __new__(cls, token: str) -> 'NeuroApiBot':
-        assert isinstance(token, str)
-        if token not in cls._instances:
-            cls._instances[token] = super(NeuroApiBot, cls).__new__(cls)
-        return cls._instances[token]
+        token_data = Token(token=token)
+        if token_data.token not in cls._instances:
+            cls._instances[token_data.token] = super(NeuroApiBot, cls).__new__(cls)
+        return cls._instances[token_data.token]
     
     def include_router(self, *routerClasses: Handler) -> None:
         for routerClass in routerClasses:

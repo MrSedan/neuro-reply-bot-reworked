@@ -1,38 +1,17 @@
-from dataclasses import dataclass
-from typing import Optional
+from typing import List
 from uuid import UUID
 
-from ._helpers import *
+from pydantic import Field
+
+from ._api_model import ApiModel
 from ._singleton import Singleton
 
 
-@dataclass
-class BotSettings(Singleton):
+class BotSettings(ApiModel, Singleton):
     uuid: UUID
-    message_times: List[str]
+    message_times: List[str] = Field([], alias='messageTimes')
     channel: str
-    is_active: bool
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'BotSettings':
-        assert isinstance(obj, dict)
-        uuid = UUID(obj.get("uuid"))
-        message_times = from_list(from_str, obj.get("messageTimes"))
-        channel = from_str(obj.get("channel"))
-        is_active = from_bool(obj.get("isActive"))
-        return BotSettings(uuid, message_times, channel, is_active)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["uuid"] = str(self.uuid)
-        result["messageTimes"] = from_list(from_str, self.message_times)
-        result["channel"] = from_str(self.channel)
-        result["isActive"] = from_bool(self.is_active)
-        return result
-
-    @staticmethod
-    def get_active() -> Optional['BotSettings']:
-        try:
-            return BotSettings._instances[BotSettings]
-        except:
-            return None
+    is_active: bool = Field(False, alias='isActive')
+    
+    def get_text(self):
+        return f"Канал: {self.channel}\nВремя: {', '.join(self.message_times)}"
