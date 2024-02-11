@@ -1,8 +1,9 @@
-aiogram==3.1.1
+aiogram==3.3.0
 aioschedule @ https://github.com/AleksHeller/python-aioschedule/archive/refs/heads/master.zip
 requests==2.31.0
 python-dateutil==2.8.2
-aiohttp==3.8.6
-pydantic==2.3.0
+aiohttp==3.9.3
+pydantic==2.5.3
 pydantic-settings==2.1.0
 uvloop==0.19.0; sys.platform == 'linux'
+aioredis==2.0.1

@@ -5,6 +5,8 @@ import signal
 import sys
 
 import aiohttp
+from aiogram.fsm.storage.redis import RedisStorage
+from redis import asyncio as redis
 
 from handlers.admin_commands import AdminCommands
 from handlers.user_commands import UserCommands
@@ -13,18 +15,20 @@ from neuroapi.types import NeuroApiBot
 
 
 async def delay_bot()->None:
-    if Config().token is None: 
+    config = Config()
+    if config.token is None: 
         logging.warning('Delay bot needs token in environment')
         return
-    bot = NeuroApiBot(Config().token)
+    bot = NeuroApiBot(config.token, storage=RedisStorage(redis.from_url(config.redis_url)))
     bot.include_router(AdminCommands, UserCommands)
     await bot.start()
 
 async def proxy_bot()->None:
-    if Config().proxy_token is None: 
+    config = Config()
+    if config.proxy_token is None: 
         logging.warning('Proxy bot needs token in environment')
         return
-    bot = NeuroApiBot(Config().proxy_token)
+    bot = NeuroApiBot(config.proxy_token)
     bot.include_router()
     await bot.start()
 
