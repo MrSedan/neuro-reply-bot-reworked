@@ -57,9 +57,13 @@ if __name__ == '__main__':
         finally:
             loop.close()
     else: 
+        import uvloop
         for signame in ('SIGINT', 'SIGTERM'):
             loop.add_signal_handler(getattr(signal, signame), loop.stop)
         try:
+            asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+            loop = uvloop.new_event_loop()
+            asyncio.set_event_loop(loop)
             asyncio.run(main())
         except KeyboardInterrupt:
             pass
