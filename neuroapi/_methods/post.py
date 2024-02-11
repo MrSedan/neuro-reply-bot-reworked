@@ -78,7 +78,6 @@ class Post(ApiMethod):
             if message_entities is not None:
                 mes_ent = list(map(lambda x: x.model_dump(), message_entities))
                 arr =[]
-                print(mes_ent)
                 for item in mes_ent:
                     if item['type'] == 'bot_command': continue
                     item['offset'] -= 7+len(order)

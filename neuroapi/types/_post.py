@@ -24,6 +24,9 @@ class Post(ApiModel):
     @classmethod
     def from_dict(cls: 'Post', obj: Dict[str, Any]) -> 'Post':
         mes_ent = json.loads(obj.get('message_entities', '[]'))
+        media_group_id_data  =  obj.get('media_group_id')
+        media_group_id = media_group_id_data if media_group_id_data is not None else 'None'
+        obj['media_group_id'] = media_group_id
         obj['message_entities'] = mes_ent
         return cls(**obj)
 
