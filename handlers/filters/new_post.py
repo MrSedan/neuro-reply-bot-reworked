@@ -8,14 +8,15 @@ class NewPostFilter(Filter):
     async def __call__(self, message: types.Message) -> bool:
         if message.media_group_id is None or message.content_type != 'photo':
             return False
-        try:
-            await neuroapi.post.get_by_media_group_id(message.media_group_id)
-        except:
-            if not (message.caption.startswith('/newpost ') if message.caption else False):
-                return False
-            await neuroapi.post.new(message.caption.replace(
-                '/newpost ', ''), str(message.from_user.id), str(message.media_group_id), message.caption_entities)
-            await message.answer('Пост успешно добавлен!')
+        # if (message.caption and message.caption.startswith('/newpost '))
+        # try:
+        #     await neuroapi.post.get_by_media_group_id(message.media_group_id)
+        # except:
+        #     if not (message.caption.startswith('/newpost ') if message.caption else False):
+        #         return False
+        #     await neuroapi.post.new(message.caption.replace(
+        #         '/newpost ', ''), str(message.from_user.id), str(message.media_group_id), message.caption_entities)
+        #     await message.answer('Пост успешно добавлен!')
         return True
 
 

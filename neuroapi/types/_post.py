@@ -34,4 +34,5 @@ class Post(ApiModel):
         obj = super().to_dict()
         obj['message_entities'] = json.dumps(obj['message_entities'])
         obj['media_group_id'] = str(obj['media_group_id']) 
+        print(obj)
         return obj

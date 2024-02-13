@@ -16,7 +16,8 @@ from neuroapi.types import NeuroApiBot
 
 async def delay_bot()->None:
     config = Config()
-    if config.token is None: 
+    print(config)
+    if config.token is None or config.token == '': 
         logging.warning('Delay bot needs token in environment')
         return
     bot = NeuroApiBot(config.token, storage=RedisStorage(redis.from_url(config.redis_url)))
@@ -25,7 +26,7 @@ async def delay_bot()->None:
 
 async def proxy_bot()->None:
     config = Config()
-    if config.proxy_token is None: 
+    if config.proxy_token is None or config.proxy_token == '': 
         logging.warning('Proxy bot needs token in environment')
         return
     bot = NeuroApiBot(config.proxy_token)
