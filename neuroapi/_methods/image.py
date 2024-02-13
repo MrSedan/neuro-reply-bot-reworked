@@ -33,4 +33,3 @@ class Image(ApiMethod):
         data = await response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
-        return data['created']

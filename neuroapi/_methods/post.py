@@ -57,9 +57,9 @@ class Post(ApiMethod):
         return neuroTypes.Post.from_dict(data)
 
     async def get_by_media_group_id(self, media_group_id: str):
-        response = requests.get(
-            self.api_url+f'/post/get-by-media-group-id/{media_group_id}')
-        data = response.json()
+        async with ClientSession() as session:
+            response = await session.get(self.api_url+f'/post/get-by-media-group-id/{media_group_id}')
+        data = await response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
         return neuroTypes.Post.from_dict(data)

@@ -14,7 +14,6 @@ class PostCommand(MessageHandlerABC):
         settings = neuroTypes.BotSettings.get_instance()
         try:
             post = await neuroapi.post.get_post_to_post()
-            print(post)
             if (post):
                 images = MediaGroupBuilder(
                     caption=post.text + '\n\nПредложка: @neur0w0men_reply_bot', caption_entities=post.message_entities)

@@ -16,7 +16,6 @@ from neuroapi.types import NeuroApiBot
 
 async def delay_bot()->None:
     config = Config()
-    print(config)
     if config.token is None or config.token == '': 
         logging.warning('Delay bot needs token in environment')
         return

@@ -9,6 +9,7 @@ from handlers.message_handlers.post_command import PostCommand
 from handlers.message_handlers.reply_to_user import ReplyToUserCommand
 from handlers.message_handlers.settings_command import SettingsCommand
 from handlers.message_handlers.update_settings import UpdateSettingsCommand
+from handlers.middlewares.media_group import MediaGroupMiddleware
 from handlers.middlewares.user import AdminMiddleware
 from neuroapi.types import BotSettings as BotSettingsType
 
@@ -19,14 +20,17 @@ class AdminCommands(Handler):
     def __init__(self, bot: Bot) -> None:
         super().__init__(bot)
         self.router.message.middleware(AdminMiddleware())
-        
+
         self.add_handlers([
             InfoCommand,
             (UpdateSettingsCommand, PostCommand(self.bot).handler),
             EditCommand,
-            NewPostCommand,
-            NewPostSoloCommand,
             PostCommand,
             SettingsCommand,
+        ])
+        self.router.message.middleware(MediaGroupMiddleware())
+        self.add_handlers([
+            NewPostCommand,
+            NewPostSoloCommand,
             ReplyToUserCommand
         ])
