@@ -7,6 +7,7 @@ from handlers.message_handlers.info_command import InfoCommand
 from handlers.message_handlers.newpost_command import (NewPostCommand,
                                                        NewPostSoloCommand)
 from handlers.message_handlers.post_command import PostCommand
+from handlers.message_handlers.preview_command import PreviewCommand
 from handlers.message_handlers.reply_to_user import ReplyToUserCommand
 from handlers.message_handlers.settings_command import SettingsCommand
 from handlers.message_handlers.update_settings import UpdateSettingsCommand
@@ -33,6 +34,7 @@ class AdminCommands(Handler):
         self.add_handlers([
             NewPostCommand,
             NewPostSoloCommand,
+            PreviewCommand,
             DeleteCommand,
             ReplyToUserCommand
         ])

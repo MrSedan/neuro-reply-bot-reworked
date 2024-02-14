@@ -55,6 +55,14 @@ class Post(ApiMethod):
         if 'statusCode' in data:
             raise Exception(data['message'])
         return neuroTypes.Post.from_dict(data)
+    
+    async def get_by_order(self, post_order: str):
+        async with ClientSession() as session:
+            response = await session.get(self.api_url+f'/post/get-post-by-order/{post_order}')
+        data = await response.json()
+        if 'statusCode' in data:
+            raise Exception(data['message'])
+        return neuroTypes.Post.from_dict(data)
 
     async def get_by_media_group_id(self, media_group_id: str):
         async with ClientSession() as session:
@@ -98,3 +106,9 @@ class Post(ApiMethod):
             else:
                 raise Exception(data['message'])
         return neuroTypes.Post.from_dict(data)
+    
+    async def delete_by_order(self, order: str):
+        response = requests.delete(self.api_url+f"/post/delete-post-by-order/{order}")
+        data = response.json()
+        if 'statusCode' in data:
+            raise Exception(data['message'])
