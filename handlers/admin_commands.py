@@ -1,6 +1,7 @@
 from aiogram import Bot
 
 from handlers.handler import Handler
+from handlers.message_handlers.delete_command import DeleteCommand
 from handlers.message_handlers.edit_command import EditCommand
 from handlers.message_handlers.info_command import InfoCommand
 from handlers.message_handlers.newpost_command import (NewPostCommand,
@@ -32,5 +33,6 @@ class AdminCommands(Handler):
         self.add_handlers([
             NewPostCommand,
             NewPostSoloCommand,
+            DeleteCommand,
             ReplyToUserCommand
         ])
