@@ -17,20 +17,15 @@ class UpdateSettingsCommand(MessageHandlerABC):
     filter = Command('update_settings')
     
     async def settings_and_schedule_checker(self):
-            await self._command()
+            await self._auto_update_settings()
             while 1:
                 await schedule.run_pending()
                 await asyncio.sleep(1)
-    
-    def __init__(self, bot: Bot, post_command: Coroutine, *args) -> None:
-        super().__init__(bot)
-        self.post = post_command
-        asyncio.create_task(self.settings_and_schedule_checker())
-    
-    async def _command(self, mes: types.Message | None = None):
+                
+    async def _auto_update_settings(self):
         self.settings = await neuroapi.bot_settings.get()
         schedule.clear()
-        schedule.every().minute.do(self._command, None)
+        schedule.every().minute.do(self._auto_update_settings)
 
         # TODO: Сделать в бэке и в боте, чтоб дни тоже можно было в настройках хранить
         for i in self.settings.message_times:
@@ -40,6 +35,13 @@ class UpdateSettingsCommand(MessageHandlerABC):
             schedule.every().thursday.at(i).do(self.post, None)
             schedule.every().friday.at(i).do(self.post, None)
             schedule.every().sunday.at(i).do(self.post, None)
-        if mes:
-            await mes.answer('Настройки обновлены!')
+    
+    def __init__(self, bot: Bot, post_command: Coroutine, *args) -> None:
+        super().__init__(bot)
+        self.post = post_command
+        asyncio.create_task(self.settings_and_schedule_checker())
+    
+    async def _command(self, mes: types.Message):
+        self.settings = await neuroapi.bot_settings.get_update()
+        await mes.answer('Настройки обновлены')
         

@@ -11,3 +11,9 @@ class BotSettings(ApiMethod):
             response = await session.get(self.api_url+'/settings')
             settings = BotSettingsType.from_dict(await response.json())
             return settings
+    
+    async def get_update(self) -> BotSettingsType:
+        async with ClientSession() as session:
+            response = await session.get(self.api_url+'/settings/active')
+            settings = BotSettingsType.from_dict(await response.json())
+            return settings
