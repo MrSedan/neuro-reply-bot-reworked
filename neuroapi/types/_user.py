@@ -7,6 +7,12 @@ from ._api_model import ApiModel
 
 
 class User(ApiModel):
+    """
+    User model with fields:
+    - id: int
+    - username: str
+    - banned: bool | None
+    """
     id: int
     username: str = Field(..., alias='user_name')
     banned: Optional[bool] = Field(None)

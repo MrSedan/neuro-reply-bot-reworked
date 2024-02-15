@@ -3,6 +3,7 @@ from aiogram.filters import Filter
 
 
 class ReplyToUser(Filter):
+    """Replying to user filter"""
     async def __call__(self, message: types.Message) -> bool:
         if message.reply_to_message is None or message.chat.type != 'private':
             return False

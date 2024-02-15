@@ -7,6 +7,7 @@ from neuroapi import neuroapi
 
 
 class AdminMiddleware(BaseMiddleware):
+    """Checking admin rights"""
     def __init__(self) -> None:
         pass
     

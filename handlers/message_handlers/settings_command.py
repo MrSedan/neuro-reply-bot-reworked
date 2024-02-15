@@ -7,6 +7,7 @@ from .handler import MessageHandlerABC
 
 
 class SettingsCommand(MessageHandlerABC):
+    """Command to show active settings"""
     filter = Command('settings')
     async def _command(self, message: types.Message):
         self.settings = BotSettings.get_instance()

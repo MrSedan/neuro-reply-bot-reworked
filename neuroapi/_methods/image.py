@@ -9,7 +9,24 @@ from .api_method import ApiMethod
 
 
 class Image(ApiMethod):
+    """Class for Image API methods"""
     async def add(self, from_id: str, file_id: str, has_spoiler: bool | None, message_id: int, text: str, media_group_id: str | None, message_entities: Optional[List[MessageEntity]], message: types.Message):
+        """
+        An asynchronous function to add an image to post, along with its metadata, to a specific API endpoint. Also, creates a new post.
+
+        Args:
+            from_id (str): The ID of the user who sent the image.
+            file_id (str): The ID of the file containing the image.
+            has_spoiler (bool | None): A boolean indicating whether the image has spoiler content.
+            message_id (int): The ID of the message containing the image.
+            text (str): The text associated with the image.
+            media_group_id (str | None): The ID of the media group containing the image, if applicable.
+            message_entities (Optional[List[MessageEntity]]): A list of message entities associated with the image.
+            message (types.Message): The message object associated with the image.
+
+        Returns:
+            None
+        """
         payload = {'from_user_id': from_id, 'file_id': file_id,
                    'has_spoiler': has_spoiler, 'message_id': message_id }
         if text != '':

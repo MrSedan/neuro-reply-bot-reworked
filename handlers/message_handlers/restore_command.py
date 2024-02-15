@@ -7,6 +7,7 @@ from .handler import MessageHandlerABC
 
 
 class RestoreCommand(MessageHandlerABC):
+    """Command to restore deleted posts"""
     filter = Command('restore')
     async def _command(self, message: Message):
         try:

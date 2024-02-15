@@ -5,6 +5,7 @@ from .handler import MessageHandlerABC
 
 
 class StartCommand(MessageHandlerABC):
+    """Command to get start message"""
     filter = CommandStart()
     
     async def _command(self, message: types.Message):

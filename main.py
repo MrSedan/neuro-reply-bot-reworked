@@ -15,6 +15,7 @@ from neuroapi.types import NeuroApiBot
 
 
 async def delay_bot()->None:
+    """Delay bot start function"""
     config = Config()
     if config.token is None or config.token == '': 
         logging.warning('Delay bot needs token in environment')
@@ -24,6 +25,7 @@ async def delay_bot()->None:
     await bot.start()
 
 async def proxy_bot()->None:
+    """Proxy bot start function"""
     config = Config()
     if config.proxy_token is None or config.proxy_token == '': 
         logging.warning('Proxy bot needs token in environment')
@@ -33,6 +35,7 @@ async def proxy_bot()->None:
     await bot.start()
 
 async def main() -> None:
+    """Checking connection to backend and starting bots"""
     for i in range(5):
         logging.warning(f'Checking connectivity to backend ({i+1}/5)...')
         try:
@@ -53,6 +56,7 @@ async def main() -> None:
 if __name__ == '__main__':
     logging.basicConfig(level=Config().logging_lvl, stream=sys.stdout, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%d.%m.%Y %H:%M:%S')
     loop = asyncio.get_event_loop()
+    # Run program in uvloop if running on Linux
     if platform.system() == 'Windows':
         try:
             loop.run_until_complete(main())

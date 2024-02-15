@@ -9,6 +9,7 @@ from .handler import MessageHandlerABC
 
 
 class PostCommand(MessageHandlerABC):
+    """Command to post posts manually or by timer"""
     filter = Command('post')
     async def _command(self, message: types.Message | None = None):
         settings = neuroTypes.BotSettings.get_instance()

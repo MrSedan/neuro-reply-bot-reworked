@@ -7,6 +7,7 @@ from .handler import MessageHandlerABC
 
 
 class EditCommand(MessageHandlerABC):
+    """Command to edit posts"""
     filter = Command('edit')
     
     async def _command(self, message: types.Message):

@@ -1,3 +1,4 @@
+"""Types for neuroapi"""
 from ._admin import Admin
 from ._bot import NeuroApiBot
 from ._bot_settings import BotSettings

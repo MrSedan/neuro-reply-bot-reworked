@@ -6,6 +6,7 @@ from .handler import MessageHandlerABC
 
 
 class ReplyToUserCommand(MessageHandlerABC):
+    """Send reply to user from admins"""
     filter = ReplyToUser()
     async def _command(self, message: types.Message):
         if message.reply_to_message.forward_from is None:

@@ -9,6 +9,7 @@ from .handler import MessageHandlerABC
 
 
 class PreviewCommand(MessageHandlerABC):
+    """Command to preview posts like it posted to channel"""
     filter = Command('preview')
     async def _command(self, message: Message):
         text = message.text.split()

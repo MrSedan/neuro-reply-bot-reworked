@@ -10,6 +10,7 @@ from .handler import MessageHandlerABC
 
 
 class InfoCommand(MessageHandlerABC):
+    """Command to show info about posts"""
     filter = Command('info')
     
     async def _command(self, message: types.Message):        

@@ -10,6 +10,7 @@ class UserCommands(Handler):
     settings: BotSettingsType
 
     def __init__(self, bot: Bot) -> None:
+        """Initialize the group of user commands"""
         super().__init__(bot)
         
         self.add_handlers([

@@ -7,6 +7,7 @@ from .handler import MessageHandlerABC
 
 
 class DeleteCommand(MessageHandlerABC):
+    """Command to delete posts"""
     filter = Command('delete')
     async def _command(self, message: Message):
         text = message.text.split()

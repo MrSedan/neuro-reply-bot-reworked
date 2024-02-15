@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 
 
 class GlobalConfig(BaseSettings):
+    """Config class"""
     api_url: str = Field("http://localhost:3000", alias='API_URL')
     
     # Redis config
@@ -39,8 +40,10 @@ class GlobalConfig(BaseSettings):
     
     @property
     def redis_url(self):
+        """Getter method to construct and return the redis URL using the provided redis password, host, port, and database number"""
         return f'redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}'
     
     class Config:
+        """Config file for pydantic settings"""
         env_file = '.env'
         

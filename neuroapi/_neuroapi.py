@@ -6,6 +6,7 @@ from ._methods.user import User
 
 
 class neuroapi:
+    """Class with all neuroapi methods"""
     post = Post()
     admin = Admin()
     user = User()

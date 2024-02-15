@@ -9,6 +9,7 @@ from .handler import MessageHandlerABC
 
 
 class NewPostCommand(MessageHandlerABC):
+    """Command to add new posts with media groups"""
     filter = NewPostFilter()
     async def _command(self, message: types.Message, album: List[types.Message]):
         sorted_album = sorted(album, key=lambda x: x.message_id)
@@ -20,6 +21,7 @@ class NewPostCommand(MessageHandlerABC):
 
 
 class NewPostSoloCommand(MessageHandlerABC):
+    """Command to add new posts without media groups"""
     filter = NewSoloPostFilter()
     async def _command(self, message: types.Message):
         await neuroapi.image.add(str(message.from_user.id), message.photo[-1].file_id, message.has_media_spoiler, message.message_id, message.caption, None, message.caption_entities, message)

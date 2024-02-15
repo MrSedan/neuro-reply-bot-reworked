@@ -11,6 +11,7 @@ from .handler import MessageHandlerABC
 
 
 class ForwardMessageCommand(MessageHandlerABC):
+    """Command to forward messages from users to admins. Also checking if they're in the channel"""
     filter = F.chat.type == 'private'
     async def _command(self, message: types.Message):
         self.settings = BotSettings.get_instance()

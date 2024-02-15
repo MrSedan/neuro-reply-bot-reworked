@@ -7,6 +7,7 @@ from .handler import MessageHandlerABC
 
 
 class DeletedPostsCommand(MessageHandlerABC):
+    """Command to show deleted posts"""
     filter = Command('deleted')
     async def _command(self, message: Message):
         try:
