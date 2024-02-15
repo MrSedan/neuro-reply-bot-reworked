@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from pydantic import Field
@@ -17,9 +18,29 @@ class GlobalConfig(BaseSettings):
     token: Optional[str] = Field(None, alias='TOKEN')
     proxy_token: Optional[str] = Field(None, alias='PROXY_TOKEN')
     
+    logging_lvl_text: str = Field('WARNING', alias='LOGGING_LVL')
+    
+    @property
+    def logging_lvl(self):
+        lvl = self.logging_lvl_text.upper()
+        if lvl == 'INFO':
+            return logging.INFO
+        elif lvl == 'DEBUG':
+            return logging.DEBUG
+        elif lvl in ['WARNING', 'WARN']:
+            return logging.WARNING
+        elif lvl == 'ERROR':
+            return logging.ERROR
+        elif lvl == 'CRITICAL':
+            return logging.CRITICAL
+        else:
+            return logging.WARNING        
+        
+    
     @property
     def redis_url(self):
         return f'redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}'
     
     class Config:
         env_file = '.env'
+        

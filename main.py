@@ -51,7 +51,7 @@ async def main() -> None:
     await asyncio.gather(*tasks)
     
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.WARNING, stream=sys.stdout, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%d.%m.%Y %H:%M:%S')
+    logging.basicConfig(level=Config().logging_lvl, stream=sys.stdout, format='%(asctime)s %(levelname)s: %(message)s', datefmt='%d.%m.%Y %H:%M:%S')
     loop = asyncio.get_event_loop()
     if platform.system() == 'Windows':
         try:
