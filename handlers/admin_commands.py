@@ -10,6 +10,7 @@ from handlers.message_handlers.newpost_command import (NewPostCommand,
 from handlers.message_handlers.post_command import PostCommand
 from handlers.message_handlers.preview_command import PreviewCommand
 from handlers.message_handlers.reply_to_user import ReplyToUserCommand
+from handlers.message_handlers.restore_command import RestoreCommand
 from handlers.message_handlers.settings_command import SettingsCommand
 from handlers.message_handlers.update_settings import UpdateSettingsCommand
 from handlers.middlewares.media_group import MediaGroupMiddleware
@@ -29,6 +30,7 @@ class AdminCommands(Handler):
             (UpdateSettingsCommand, PostCommand(self.bot).handler),
             EditCommand,
             PostCommand,
+            RestoreCommand,
             SettingsCommand,
         ])
         self.router.message.middleware(MediaGroupMiddleware())

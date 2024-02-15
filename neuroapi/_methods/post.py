@@ -119,3 +119,11 @@ class Post(ApiMethod):
         if 'statusCode' in data:
             raise Exception(data['message'])
         return [neuroTypes.Post.from_dict(post) for post in data]
+    
+    async def restore_post(self, order: str):
+        async with ClientSession() as session:
+            response = await session.put(self.api_url+f'/post/restore-post-by-order/{order}')
+        data = await response.json()
+        if 'statusCode' in data:
+            raise Exception(data['message'])
+        return neuroTypes.Post.from_dict(data)
