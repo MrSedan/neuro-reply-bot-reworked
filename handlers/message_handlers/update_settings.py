@@ -1,11 +1,13 @@
 import asyncio
+import logging
 from typing import Coroutine
 
-import aioschedule as schedule
 from aiogram import Bot, types
 from aiogram.filters import Command
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from neuroapi import neuroapi
+from neuroapi.config import GlobalConfig
 from neuroapi.types import BotSettings
 
 from .handler import MessageHandlerABC
@@ -18,28 +20,25 @@ class UpdateSettingsCommand(MessageHandlerABC):
     
     async def settings_and_schedule_checker(self):
             await self._auto_update_settings()
-            while 1:
-                await schedule.run_pending()
-                await asyncio.sleep(1)
                 
     async def _auto_update_settings(self):
         self.settings = await neuroapi.bot_settings.get()
-        schedule.clear()
-        schedule.every().minute.do(self._auto_update_settings)
+        self.scheduler.remove_all_jobs()
+        self.scheduler.add_job(self._auto_update_settings, 'interval', seconds=60)
 
         # TODO: Сделать в бэке и в боте, чтоб дни тоже можно было в настройках хранить
         for i in self.settings.message_times:
-            schedule.every().monday.at(i).do(self.post, None)
-            schedule.every().tuesday.at(i).do(self.post, None)
-            schedule.every().wednesday.at(i).do(self.post, None)
-            schedule.every().thursday.at(i).do(self.post, None)
-            schedule.every().friday.at(i).do(self.post, None)
-            schedule.every().sunday.at(i).do(self.post, None)
+            self.scheduler.add_job(self.post, 'cron', day_of_week='mon-sun', hour=i.split(':')[0], minute=i.split(':')[1])
+        logging.debug(self.scheduler.get_jobs())
     
     def __init__(self, bot: Bot, post_command: Coroutine, *args) -> None:
         super().__init__(bot)
         self.post = post_command
-        asyncio.create_task(self.settings_and_schedule_checker())
+        config = GlobalConfig()
+        logging.debug(config)
+        self.scheduler = AsyncIOScheduler(event_loop=asyncio.get_event_loop())
+        self.scheduler.add_job(self.settings_and_schedule_checker, 'interval', seconds=60)
+        self.scheduler.start()
     
     async def _command(self, mes: types.Message):
         self.settings = await neuroapi.bot_settings.get_update()

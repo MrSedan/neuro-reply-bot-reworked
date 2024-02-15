@@ -10,7 +10,7 @@ from .handler import MessageHandlerABC
 
 class PostCommand(MessageHandlerABC):
     filter = Command('post')
-    async def _command(self, message: types.Message):
+    async def _command(self, message: types.Message | None = None):
         settings = neuroTypes.BotSettings.get_instance()
         try:
             post = await neuroapi.post.get_post_to_post()
