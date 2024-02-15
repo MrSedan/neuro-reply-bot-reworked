@@ -112,3 +112,10 @@ class Post(ApiMethod):
         data = response.json()
         if 'statusCode' in data:
             raise Exception(data['message'])
+    async def get_deleted_posts(self) -> List[neuroTypes.Post]:
+        async with ClientSession() as session:
+            response = await session.get(self.api_url+f'/post/get-deleted')
+        data = await response.json()
+        if 'statusCode' in data:
+            raise Exception(data['message'])
+        return [neuroTypes.Post.from_dict(post) for post in data]
