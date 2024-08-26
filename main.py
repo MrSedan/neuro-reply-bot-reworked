@@ -9,6 +9,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from redis import asyncio as redis
 
 from handlers.admin_commands import AdminCommands
+from handlers.proxy_commands import ProxyCommands
 from handlers.user_commands import UserCommands
 from neuroapi.config import GlobalConfig as Config
 from neuroapi.types import NeuroApiBot
@@ -31,7 +32,7 @@ async def proxy_bot()->None:
         logging.warning('Proxy bot needs token in environment')
         return
     bot = NeuroApiBot(config.proxy_token)
-    bot.include_router()
+    bot.include_router(ProxyCommands)
     await bot.start()
 
 async def main() -> None:

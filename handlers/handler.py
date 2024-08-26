@@ -34,6 +34,11 @@ class NeuroApiRouter(Router):
         self.message.register(handler.handler, handler.filter)
         
     
+    def add_callback_query_handler(self, callback: MessageHandlerABC, *args: Any):
+        handler = callback(self.bot, *args)
+        self.callback_query.register(handler.handler, handler.filter)
+        
+    
     
 class Handler:
     bot: Bot
@@ -72,3 +77,11 @@ class Handler:
                 self.router.add_message_handler(handler[0], *args)
             else:
                 self.router.add_message_handler(handler)
+                
+    def add_callback_handlers(self, handlers: List[MessageHandlerABC] | List[Tuple[MessageHandlerABC] | Optional[Tuple[Any, ...]]]):
+        for handler in handlers:
+            if isinstance(handler, tuple):
+                args = handler[1:] if len(handler)>1 else []
+                self.router.add_callback_query_handler(handler[0], *args)
+            else:
+                self.router.add_callback_query_handler(handler)
